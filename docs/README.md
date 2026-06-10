@@ -103,6 +103,7 @@ Each finding includes the HTTP endpoint, making it easy to map your application'
 | Method | Command |
 |--------|---------|
 | **Homebrew** (Linux/macOS) | `brew install --cask seqra/tap/opentaint` |
+| **npm / npx** (Linux/macOS/Windows) | `npm install -g @seqra/opentaint` — or `npx @seqra/opentaint scan` to run without installing (needs Node.js) |
 | **Install script** (Linux/macOS) | `curl -fsSL https://opentaint.org/install.sh \| bash` |
 | **Install script** (Windows PowerShell) | `irm https://opentaint.org/install.ps1 \| iex` |
 | **Install script** (Windows CMD) | `curl -fsSL https://opentaint.org/install.cmd -o install.cmd && install.cmd && del install.cmd` |
@@ -119,6 +120,7 @@ For detailed instructions, see [Installation Guide](installation.md).
 
 ```bash
 opentaint scan                                            # Scan current directory
+npx @seqra/opentaint scan                                 # Run without installing (needs Node.js)
 opentaint scan --output results.sarif                     # Scan with explicit output path
 opentaint summary --show-findings results.sarif           # View results
 opentaint summary --show-findings --verbose-flow --show-code-snippets results.sarif  # Full detail
@@ -130,6 +132,9 @@ opentaint summary --show-findings --verbose-flow --show-code-snippets results.sa
 | `opentaint compile` | Build project model separately |
 | `opentaint project` | Create model from precompiled JARs |
 | `opentaint summary` | View SARIF results |
+| `opentaint health` | Show resolved analyzer, autobuilder, rules, and runtime paths |
+| `opentaint test rule` | Scaffold, test, and debug detection rules |
+| `opentaint test approximation` | Scaffold and test dataflow approximations |
 | `opentaint pull` | Download dependencies |
 | `opentaint update` | Update to latest version |
 | `opentaint prune` | Remove stale artifacts and cached models |
