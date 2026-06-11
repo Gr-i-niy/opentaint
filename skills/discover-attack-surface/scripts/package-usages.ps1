@@ -9,7 +9,7 @@ $yaml = Get-Content (Join-Path $ModelDir 'project.yaml')
 function Get-YamlList([string]$key) {
   $f = $false
   foreach ($l in $yaml) {
-    if ($l -match "^\s*$key:\s*$") { $f = $true; continue }
+    if ($l -match "^\s*${key}:\s*$") { $f = $true; continue }
     if ($f) {
       if ($l -match '^\s*-\s+(.+?)\s*$' -and $l -notmatch ':') { $Matches[1] }
       elseif ($l -match ':') { $f = $false }
@@ -31,10 +31,12 @@ $out = foreach ($e in (Get-YamlList 'moduleClasses')) {
   }
   if ($roots) { $names = $names | Where-Object { ($_ -replace '\.','/') -match "^($roots)/" } }
   if ($names) {
-    $argfile = New-TemporaryFile
-    $names | Set-Content -LiteralPath $argfile
-    & javap -c -p -classpath $p "@$argfile" 2>$null
-    Remove-Item -LiteralPath $argfile
+    $batch = [System.Collections.Generic.List[string]]::new(); $len = 0
+    foreach ($n in $names) {
+      $batch.Add($n); $len += $n.Length + 1
+      if ($len -ge 25000) { & javap -c -p -classpath $p @($batch) 2>$null; $batch.Clear(); $len = 0 }
+    }
+    if ($batch.Count) { & javap -c -p -classpath $p @($batch) 2>$null }
   }
 }
 
