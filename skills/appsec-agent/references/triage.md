@@ -2,6 +2,8 @@
 
 The scan must be stable first.
 
+A zero-finding scan is not automatically a clean project. On a normal/deep run, when rules load and run cleanly but nothing fires, suspect a broken flow before accepting the result — taint that dies before reaching any sink yields zero findings just as a genuinely clean project does. The usual causes are an over-eager `skipped.yaml` entry or a method still dropped on a source→sink path. Check both, then trace where taint dies with debug-rule (references/escalation.md). Conclude the project is clean only once the flows are confirmed intact, or the cause is found and genuinely cannot be fixed.
+
 ## Generate finding files
 
 Run this skill's bundled `scripts/sarif-to-findings.py` over `.opentaint/results/report.sarif` (`python3 <this skill's directory>/scripts/sarif-to-findings.py .opentaint/results/report.sarif -o .opentaint/tracking/findings` — the script lives in the skill directory, not the project; the project-relative paths are arguments). It writes one `tracking/findings/<finding_name>.yaml` per rule and is idempotent — a rescan adds new result hashes to an untriaged finding and resets it to `pending`, while leaving triaged verdicts intact. This is a deterministic script with no context cost, so run it yourself, not via a subagent.
