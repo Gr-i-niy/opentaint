@@ -13,7 +13,7 @@ Orchestrate an end-to-end OpenTaint analysis of a JVM project: run the workflow 
 
 The run is one pipeline of a few steps, each gated by the chosen workflow; a step's detail lives in a reference loaded when you reach it, while what every workflow shares stays in this file. Default to the current directory when no target is named.
 
-Keep every artifact under one `.opentaint/` directory at the project root — models, rules, configs, approximations, test projects, results, tracking, PoCs, reports. Don't scatter files outside it.
+OpenTaint's own artifacts default under one `.opentaint/` directory at the project root — models, rules, configs, approximations, test projects, results, tracking, PoCs, reports — which keeps a run self-contained and easy to clean up. Build tools, the app, and Docker still write their usual outputs (`build/`, `target/`, containers, …) where they always do; that's expected, not something to police.
 
 ## Setup
 
@@ -40,6 +40,7 @@ Begin by asking the user both things in a single AskUserQuestion call — two qu
    - lite — build + scan with existing rules
    - normal — + approximation iteration
    - deep — + discover-attack-surface for project-used dependency members + new rules (fixed first)
+   - recommend by what's on disk: a cold start (no usable `.opentaint` artifacts) → deep, to build full coverage; a prior run's artifacts already present (model, rules, approximations) → lite, to reuse that coverage
 2. Triage level — `static` · `dynamic`
    - static — classify findings from the model, no running app
    - dynamic — + a PoC per confirmed TP. This launches a few test services on the user's current machine (local instances and ports); they're torn down at the end of the run. Make that clear in the option
@@ -86,6 +87,8 @@ Orchestration practices:
 - the sole sequential exception is PoC (shared app state and ports); see references/poc.md
 - Steps within a unit are sequential via the artifact on disk — dispatch step N only after step N−1's named artifact exists; never bundle steps into one dispatch
 - write `state.yaml` at each fan-out join — a phase flips to `done` only once every unit's artifact exists on disk
+- delete the `test-compiled/` models at the end of the stage that built them (rules, approximations) — large and unused once the tests pass
+- never let one unit halt the run — a rule or approximation that won't work after its skill's retries and the escalation flow (references/escalation.md) is recorded and skipped, not blocked on: note the cause in the unit's tracking (and file it with report-analyzer-issue when the cause is the engine), leave its stage un-`done`, and carry on through to triage. A skipped unit costs coverage (a possible false negative), never the run. Only a blocker to every remaining step (`opentaint` missing, no project model at all) stops the workflow
 
 ## Resource limits
 
@@ -102,12 +105,12 @@ It's machine state, not run state — recompute on resume, don't track it. PoC i
 
 ## State and resumption
 
-You are the only writer of `.opentaint/tracking/state.yaml` — it records the chosen levels and every phase's status, written after each fan-out join.
+You are the only writer of `.opentaint/tracking/state.yaml` — it records the chosen levels, the commit the current project model was built from, and every phase's status, written after each fan-out join.
 
 On start, and after any compaction or re-invocation, reconstruct position from the artifacts on disk before doing anything. Read `state.yaml` and the `tracking/` tree, then tell two situations apart by the phase statuses:
 
 - Resuming an interrupted run — a phase is `in_progress` or left pending mid-pipeline. Skip the phases already `done` and continue from the stop point, reusing their artifacts as-is: `project.yaml` → build; `coverage.yaml` with every entry `done` → discover; a lib unit's `tests_passing: done` → that package's lib rules, and a `rules/join/<class>.yaml` per vuln class → joins assembled; `report.sarif` → scan; an approximation unit's `artifact` (plus `tests_passing` for dataflow) → that unit; a finding with `verdict` set → triaged; with `poc` set → PoC'd
-- Re-invoking a completed run — every phase the chosen levels cover was already `done` (a re-run over evolved code, or a new level pair over a prior run's output, e.g. lite after deep). Do NOT skip the pipeline because last run's artifacts exist — re-enter build, scan and triage in reuse mode: build reuses the model only if sources are unchanged, else rebuilds (build-project); scan re-runs applying every existing rule and approximation (references/scan.md); triage re-runs and reconciles verdicts (references/triage.md). Set each covered phase back to `pending` as you re-enter it, and apply Reuse over regeneration (below) to every code-coupled artifact
+- Re-invoking a completed run — every phase the chosen levels cover was already `done` (a re-run over evolved code, or a new level pair over a prior run's output, e.g. lite after deep). Do NOT skip the pipeline because last run's artifacts exist — re-enter build, scan and triage in reuse mode: build reuses the model only when its `model_commit` matches the current commit — a null/missing `model_commit`, or a dirty/untracked tree, forces a rebuild (which records the current commit); fall back to file mtimes when there's no usable commit (build-project); scan re-runs applying every existing rule and approximation (references/scan.md); triage re-runs and reconciles verdicts (references/triage.md). Set each covered phase back to `pending` as you re-enter it, and apply Reuse over regeneration (below) to every code-coupled artifact
 - detect new work from artifacts, not memory: finding files with `verdict: pending` (a fresh or reset scan) → triage; methods in `dropped-external-methods.yaml` not yet in any approximation unit → approximations
 
 ### Reuse over regeneration
@@ -142,6 +145,7 @@ state.yaml:
 ```yaml
 scan_level: deep        # lite | normal | deep
 triage_level: dynamic   # static | dynamic
+model_commit: a1b2c3d4  # commit the current project model was built from — null if untracked or the tree was dirty (a null forces a rebuild)
 phases:                 # pending | in_progress | done
   build: done
   discover: done        # deep only
@@ -269,6 +273,7 @@ methods:                # engine asks to approximate these, but they carry no ta
 
 ## Key constraints
 
+- the project model is generated by `opentaint` — never hand-edit `project.yaml` or any file under the model dir; to change what's analyzed, fix the build and rebuild (references/build.md), never patch the model
 - the engine models stored / second-order injection (data persisted then read back) on its own — no source, sink-side, or propagator needs to be added for the store→read path
 - approximations apply only to external library methods — never an application-internal class
 - `--passthrough-approximations` merges with built-ins at the rule level; a provided rule overrides a built-in only when it matches one already there — it does not replace the built-in set
