@@ -1,5 +1,7 @@
 # Discover + new rules
 
+On a re-entry over a project that changed, this whole block re-validates against the current code rather than skipping because `coverage.yaml` exists: re-run triage-dependencies (it's cheap and reconciles the list — a newly-added library gets a fresh `pending` entry), and reopen any flagged package whose project-used surface changed so discover-attack-surface re-scopes it. Reuse the unchanged units and their `done` status as-is; the existing lib rules and joins are the baseline the depth passes refine, not work to redo.
+
 ## Triage dependencies
 
 Delegate triage-dependencies. Inputs: `<project-root>`, model-dir `.opentaint/project`, tracking-dir `.opentaint/tracking`. It reads `project.yaml`'s dependency list and writes `tracking/coverage.yaml` (`package` / `status` / `notes`) — one `status: pending` entry per library that could introduce a source or sink, dismissals summarised — returning one line per flagged library. Don't ask for the full list back.

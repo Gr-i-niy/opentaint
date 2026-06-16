@@ -26,7 +26,7 @@ From the caller; if omitted, fall back to the default. Ask only when a required 
 - `build.gradle` / `build.gradle.kts` → Gradle
 - `pom.xml` → Maven
 - pre-compiled JAR/WAR → classpath mode
-- existing `project.yaml` → already built, reuse it
+- existing `project.yaml` → reuse it only when the sources are unchanged since it was built (the model is older than every source file, or the tree is clean at the model's commit); if the code moved on, the model is stale — rebuild it
 
 ### 2a. Gradle/Maven — autobuilder
 

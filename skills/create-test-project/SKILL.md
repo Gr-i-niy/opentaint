@@ -26,6 +26,8 @@ From the caller; if omitted, fall back to the default. Ask only when a required 
 
 ## Workflow
 
+When a compiled model for this `<name>` already exists and its `test_project` stage is `done`, reuse it as long as the spec and dependencies are unchanged — don't rebuild it. When the requirements' surface changed (a new source/sink to exercise) or a dependency moved, extend the existing project with the missing samples and recompile, rather than scaffolding a fresh one.
+
 ### 1. Init the project
 
 Pick the scaffold by shape, then pass each coordinate from the tracking file's `dependencies` as a `--dependency`:

@@ -22,6 +22,8 @@ From the caller; if omitted, fall back to the default. Ask only when a required 
 
 ## Workflow
 
+A unit already `done` (its `tests_passing` stage done and `artifact` present) is trusted — a working model needs no re-validation; if re-dispatched without a specific fix, leave the source as-is. Only write when the unit isn't done, or when the caller hands you a concrete drift to fix. Add new methods/overloads to the existing source rather than rewriting it.
+
 ### 1. Write the approximation source
 
 Create Java files in `<approx-src>`. Target the EXACT class named in `dropped-external-methods.yaml` — `@Approximate` matches only that class (unlike passThrough's `overrides: true`), and the dropped FQN reflects how the analyzer resolved the call: an interface-typed receiver (`Map m = ...; m.computeIfAbsent(...)`) drops `java.util.Map#computeIfAbsent`; a concrete one (`new HashMap<>()`) drops `java.util.HashMap#computeIfAbsent`. Don't substitute a supertype or subtype. Model the real propagation — never leave the body empty (it silently drops taint); when unsure how taint flows through the method, read the library source rather than guessing:

@@ -8,8 +8,13 @@ Grouping is trivial (by rule_id) — no clustering. The triage skill
 (analyze-findings) later splits a rule's bundle into distinct logical findings.
 
 Idempotent: re-running after a re-scan adds only result hashes not already
-present in any of that rule's finding files, resets the touched file's verdict
-to `pending`, and leaves existing verdict/notes/poc and triage splits intact.
+present in any of that rule's finding files, and leaves existing verdict/notes/
+poc and triage splits intact. New hashes for a rule are merged into an untriaged
+(`verdict: pending`) finding when one exists; when every finding for the rule is
+already triaged, the new hashes are surfaced as a fresh `pending` finding rather
+than overwriting a triaged verdict — the triage skill reconciles it against the
+rule's triaged findings by flow (a hash can shift while the vulnerability stays
+the same) and either merges-and-inherits or keeps it as new.
 
 SARIF assumptions — adjust the two helpers below if the real OpenTaint SARIF
 differs:
@@ -81,6 +86,7 @@ NAME_RE = re.compile(r'^finding_name:\s*(.+?)\s*$', re.M)
 RULE_RE = re.compile(r'^rule_id:\s*(.+?)\s*$', re.M)
 HASHES_RE = re.compile(r'^sarif_hashes:\s*\[(.*)\]\s*$', re.M)
 HASHES_BLOCK_RE = re.compile(r'^sarif_hashes:\s*\n((?:[ \t]+-[^\n]*\n?)+)', re.M)
+VERDICT_RE = re.compile(r'^verdict:\s*(.+?)\s*$', re.M)
 
 
 def parse_hashes(text):
@@ -109,9 +115,11 @@ def replace_hashes(text, merged):
 def parse_existing(text):
     name = NAME_RE.search(text)
     rid = RULE_RE.search(text)
+    verdict = VERDICT_RE.search(text)
     return (name.group(1) if name else None,
             rid.group(1) if rid else None,
-            parse_hashes(text))
+            parse_hashes(text),
+            verdict.group(1).strip() if verdict else "pending")
 
 
 def fmt_list(hashes):
@@ -145,13 +153,13 @@ def main():
     existing = {}
     taken = set()
     for p in sorted(glob.glob(str(out / "*.yaml"))):
-        name, rid, hashes = parse_existing(Path(p).read_text(encoding="utf-8"))
+        name, rid, hashes, verdict = parse_existing(Path(p).read_text(encoding="utf-8"))
         if name:
             taken.add(name)
         if rid:
-            existing.setdefault(rid, []).append((Path(p), hashes))
+            existing.setdefault(rid, []).append((Path(p), hashes, verdict))
 
-    created = updated = unchanged = 0
+    created = updated = unchanged = reconcile = 0
     for rid, hashmap in sorted(by_rule.items()):
         scanned = set(hashmap)
         files = existing.get(rid)
@@ -163,21 +171,41 @@ def main():
                 new_file_text(name, rid, sorted(scanned), notes), encoding="utf-8")
             created += 1
             continue
-        already = set().union(*(set(h) for _, h in files))
+        already = set().union(*(set(h) for _, h, _ in files))
         new = sorted(scanned - already)
         if not new:
             unchanged += 1
             continue
-        path, hashes = files[0]
-        merged = sorted(set(hashes) | set(new))
-        text = path.read_text(encoding="utf-8")
-        text = replace_hashes(text, merged)
-        text = re.sub(r'^verdict:\s*.+$', "verdict: pending", text, count=1, flags=re.M)
-        path.write_text(text, encoding="utf-8")
-        updated += 1
+        # Prefer an untriaged finding to absorb the new hashes — merging there
+        # loses no verdict. Never overwrite a triaged verdict.
+        pending = next(((p, h) for p, h, v in files if v == "pending"), None)
+        if pending:
+            path, hashes = pending
+            merged = sorted(set(hashes) | set(new))
+            text = path.read_text(encoding="utf-8")
+            text = replace_hashes(text, merged)
+            text = re.sub(r'^verdict:\s*.+$', "verdict: pending", text, count=1, flags=re.M)
+            path.write_text(text, encoding="utf-8")
+            updated += 1
+            continue
+        # Every finding for this rule is already triaged — the new results may be
+        # the same vulnerabilities with shifted hashes. Surface them as a fresh
+        # pending finding for the triage skill to reconcile by flow, rather than
+        # clobbering a triaged verdict.
+        name = docker_name(rid, taken)
+        taken.add(name)
+        msgs = sorted({hashmap[h] for h in new if hashmap.get(h)})
+        notes = ("reconcile: new results under a rule whose findings are already "
+                 "triaged — match each against this rule's triaged findings by flow "
+                 "before judging; if the vulnerability is the same, merge its hashes "
+                 "into that finding and inherit its verdict instead of re-triaging\n"
+                 + "\n".join(msgs))
+        (out / f"{name}.yaml").write_text(
+            new_file_text(name, rid, sorted(new), notes), encoding="utf-8")
+        reconcile += 1
 
-    print(f"findings: {created} created, {updated} updated, {unchanged} unchanged "
-          f"({len(by_rule)} rules in scan)")
+    print(f"findings: {created} created, {updated} updated, {unchanged} unchanged, "
+          f"{reconcile} to reconcile ({len(by_rule)} rules in scan)")
 
 
 if __name__ == "__main__":

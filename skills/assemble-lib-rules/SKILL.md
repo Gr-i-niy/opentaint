@@ -23,6 +23,8 @@ Built-in rules are available at `opentaint health --rules`
 
 ## Workflow
 
+When join files already exist from a prior run, reuse them as the baseline — re-assemble to fold in any new lib rules (a new source widens the `on:` of every join for its vuln class; a new sink adds a join), and leave a `verified` join untouched when no new rule touches its wiring. Don't rewrite joins that already hold.
+
 ### 1. Read the created lib rules and the built-ins
 
 Read every per-package lib unit in `<lib-units>` (the source/sink `rule_id`s create-rule wrote, sinks carrying their `vuln_class`) and the built-in source/sink lib rules (`opentaint health --rules`). Collect every source rule (built-in + created) and every sink rule grouped by vuln class

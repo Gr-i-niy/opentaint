@@ -22,6 +22,8 @@ From the caller; if omitted, fall back to the default. Ask only when a required 
 
 ## Workflow
 
+A unit already `done` (its `written` stage done and `artifact` present) is trusted — if re-dispatched without a specific fix to make, leave the config as-is. Only write when the unit isn't done, or when the caller hands you a concrete drift to fix (a method still dropped, a load error, a broken channel). Add new methods to the existing config rather than rewriting it.
+
 ### 1. Write the passThrough config
 
 Every config file MUST begin with a `language: java` header on its own first line, above `passThrough:`. The loader keys on it: a file with no `language:` header — or a mismatched one — is silently dropped whole, with no load error, so the passThrough never applies and every method you modeled stays dropped. Each file is:
