@@ -104,11 +104,20 @@ It's machine state, not run state — recompute on resume, don't track it. PoC i
 
 You are the only writer of `.opentaint/tracking/state.yaml` — it records the chosen levels and every phase's status, written after each fan-out join.
 
-On start, and after any compaction, reconstruct position from artifacts before doing anything — never replay a completed phase:
+On start, and after any compaction or re-invocation, reconstruct position from the artifacts on disk before doing anything. Read `state.yaml` and the `tracking/` tree, then tell two situations apart by the phase statuses:
 
-- read `state.yaml` and the `tracking/` tree
-- skip any phase whose artifact exists: `project.yaml` → build; `coverage.yaml` with every entry `done` → discover; a lib unit's `tests_passing: done` → that package's lib rules, and a `rules/join/<class>.yaml` per vuln class → joins assembled; `report.sarif` → scan; an approximation unit's `artifact` (plus `tests_passing` for dataflow) → that unit; a finding with `verdict` set → triaged; with `poc` set → PoC'd
+- Resuming an interrupted run — a phase is `in_progress` or left pending mid-pipeline. Skip the phases already `done` and continue from the stop point, reusing their artifacts as-is: `project.yaml` → build; `coverage.yaml` with every entry `done` → discover; a lib unit's `tests_passing: done` → that package's lib rules, and a `rules/join/<class>.yaml` per vuln class → joins assembled; `report.sarif` → scan; an approximation unit's `artifact` (plus `tests_passing` for dataflow) → that unit; a finding with `verdict` set → triaged; with `poc` set → PoC'd
+- Re-invoking a completed run — every phase the chosen levels cover was already `done` (a re-run over evolved code, or a new level pair over a prior run's output, e.g. lite after deep). Do NOT skip the pipeline because last run's artifacts exist — re-enter build, scan and triage in reuse mode: build reuses the model only if sources are unchanged, else rebuilds (build-project); scan re-runs applying every existing rule and approximation (references/scan.md); triage re-runs and reconciles verdicts (references/triage.md). Set each covered phase back to `pending` as you re-enter it, and apply Reuse over regeneration (below) to every code-coupled artifact
 - detect new work from artifacts, not memory: finding files with `verdict: pending` (a fresh or reset scan) → triage; methods in `dropped-external-methods.yaml` not yet in any approximation unit → approximations
+
+### Reuse over regeneration
+
+The `.opentaint/` tree is long-lived — a run is as often a re-entry over a project that moved on (new commits, new dependencies) as a fresh start, and any level may run over another's output. Reuse what's there; re-derive only what the current code forces. Two trust classes decide how each artifact is reused, regardless of the chosen levels:
+
+- Trusted — the function approximations (`pass-through/`, `dataflow/`, and their `approximations/*` units). A `done` unit is left untouched; a working model needs no re-validation. Add only what the current scan newly drops — never re-derive an approximation that already works, and apply every existing one on every scan (references/scan.md)
+- Code-coupled — everything that mirrors the current sources: the project model, the dependency/usage scope, the lib rules and joins, the findings. Reuse each as a baseline, then re-validate against the current code — the model rebuilds when sources changed; a newly-added dependency or a changed project usage reopens its package for expanded or new rules; a finding whose triaged flow still holds keeps its verdict. Refine in place; author from scratch only for genuinely new surface
+
+Findings carry their verdict across rescans. The SARIF→finding script carries verdicts by exact hash; when a hash shifts but the vulnerability is unchanged (code moved, flow nudged), it surfaces the new results as a fresh `pending` finding under the same rule — match those against the rule's already-triaged findings by flow and inherit the verdict, rather than re-triaging (references/triage.md)
 
 ## Tracking layout
 
@@ -255,7 +264,7 @@ methods:                # engine asks to approximate these, but they carry no ta
   pocs/<finding_name>.py        # PoC scripts
   issues/<slug>.md              # engine-issue reports
   tracking/                     # see Tracking layout
-  vulnerabilities.md            # you assemble this from confirmed findings
+  vulnerabilities.md            # you assemble this from the TP findings (PoC-confirmed on dynamic runs)
 ```
 
 ## Key constraints

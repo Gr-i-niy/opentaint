@@ -22,6 +22,8 @@ From the caller; if omitted, fall back to the default. Ask only when a required 
 
 ## Workflow
 
+A unit already `done` (its `written` stage done and `artifact` present) is trusted — if re-dispatched without a specific fix to make, leave the config as-is. Only write when the unit isn't done, or when the caller hands you a concrete drift to fix (a method still dropped, a load error, a broken channel). Add new methods to the existing config rather than rewriting it.
+
 ### 1. Write the passThrough config
 
 Write `passThrough:` copies into `<config-file>`. When an object carries taint between calls — a setter stores it and a getter returns it later, or a builder holds it — route through a virtual slot, an access path `[<base>, .<DeclaringClass>#<slot>#java.lang.Object]`:

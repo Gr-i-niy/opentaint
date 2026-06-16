@@ -39,6 +39,8 @@ A library the app references only for safe, constant, or framework-internal use 
 
 Write `<tracking-dir>/coverage.yaml` (schema below). One `pending` entry per flagged library — these are the depth work-list. Record dismissals as a single bulk entry summarising the categories ruled out, not one row per jar; add an individual `done` row only for a library a reader might expect to be flagged but isn't, with a one-line reason
 
+When `coverage.yaml` already exists from a prior run, reconcile rather than overwrite: keep every existing entry and its `status`/`notes` (a `done` flip and its findings from the depth pass are not yours to reset), and add a `pending` entry only for a dependency that is newly on the classpath and not already weighed. An entry whose library is unchanged stays exactly as it is
+
 ## Output
 
 - `<tracking-dir>/coverage.yaml` — flagged libraries `status: pending`, dismissals summarised

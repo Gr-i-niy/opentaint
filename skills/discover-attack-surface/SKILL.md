@@ -22,6 +22,8 @@ From the caller; if omitted, fall back to the default. Ask only when a required 
 
 ## Workflow
 
+When this package already has a rule plan (`rules/lib/<package-kebab>.yaml`) and usage snapshot from a prior run, reuse them as the baseline rather than planning from scratch. Re-run `package-usages.sh` only if the model changed since the snapshot; then diff the current project-used members against the plan — keep the members it already covers, and add or `expand` only the newly-used ones. If nothing changed, leave the unit and its `done` coverage entry untouched. The steps below apply to the new or changed surface.
+
 ### 1. Settle built-in coverage first
 
 Before planning anything, see what the built-ins already match for this package's project-used members — read the lib rules (`opentaint health --rules`) plus `.opentaint/rules`. Decide one of:

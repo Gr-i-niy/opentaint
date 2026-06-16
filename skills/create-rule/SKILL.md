@@ -28,6 +28,8 @@ Built-in rules are available at `opentaint health --rules`
 
 ## Workflow
 
+When this package's lib rules already exist (the tracking file's `artifact` set and `tests_passing: done`), reuse them as the baseline — expand or refine for what the requirements newly name (a new sink, a widened source), never re-author rules that already pass. When the unit is partway (some stages `done`, some not), continue from the first unfinished stage on the artifacts already on disk rather than restarting. Author from scratch only the genuinely new sources/sinks.
+
 ### 1. Check existing coverage
 
 Browse builtin rules at `opentaint health --rules` for source/sink library rules to reference. A `refs` to a built-in source/sink is cheaper and more accurate than a new one
