@@ -175,6 +175,7 @@ stages:
 - Source/sink metavariable names must match across `refs` and `on` clauses, or the join won't connect; bind the tainted value as `$UNTRUSTED` in every lib source/sink rule, so the security joins assemble-lib-rules writes later reference one consistent name
 - The `rule:` path in `refs` is relative to the ruleset root — a marker ref resolves under the test project's `test-rules`, a lib ref under `<rules-dir>`
 - Rule IDs must be globally unique
+- The only `opentaint scan` you run is the step-5 diagnostic over your own `<test-compiled>` model — never scan the main project model
 - For simple structural patterns (no dataflow), omit `mode:` (uses default mode)
 - Custom library rules go under `<rules-dir>/java/lib/generic/` or `<rules-dir>/java/lib/spring/` (for Spring-specific), mirroring the built-in layout — never directly under `java/lib/`; the test joins go in the test project's `test-rules/java/security/`, never `<rules-dir>`
 

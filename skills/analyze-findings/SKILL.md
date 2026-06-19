@@ -68,5 +68,6 @@ poc_script: null
 
 ## Gotchas
 
+- Verdicts and notes go in the finding files only — never write `.opentaint/vulnerabilities.md`; the caller assembles that from the verdicts
 - Bulk verdicts are the most common triage error — many results under one shared rationale with the traces unread. One trace, one judgment
 - A rule's bundle is not one finding — split distinct vulnerabilities apart, but keep true duplicates (same sink and flow) together as one finding with multiple `sarif_hashes`
