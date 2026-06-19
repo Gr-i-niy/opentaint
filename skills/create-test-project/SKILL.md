@@ -26,7 +26,7 @@ From the caller; if omitted, fall back to the default. Ask only when a required 
 
 ## Workflow
 
-When a compiled model for this `<name>` already exists and its `test_project` stage is `done`, reuse it as long as the spec and dependencies are unchanged — don't rebuild it. When the requirements' surface changed (a new source/sink to exercise) or a dependency moved, extend the existing project with the missing samples and recompile, rather than scaffolding a fresh one.
+When re-invoked over an existing `<name>` project whose surface grew (a new source/sink to exercise) or whose dependency moved, extend it with the missing samples and recompile — add to what's there rather than scaffolding fresh. Whether a still-current model needs rebuilding at all is the caller's decision, not yours.
 
 ### 1. Init the project
 

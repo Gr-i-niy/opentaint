@@ -123,6 +123,7 @@ Do not touch other stages or fields
 ## Constraints
 
 - Also the passThrough fallback — when a passThrough for a method won't converge, the orchestrator re-plans it here; target the same dropped class and the dataflow approximation overrides the passThrough (the orchestrator removes the stale passThrough config before this one is tested)
+- Verify only with `test approximation run` on `<test-compiled>` — never scan the main project model
 - Java 8 source compatibility
 - Put the `@Approximate` classes in a neutral package (e.g. `com.example.approximations`) — never the target library's own package. Inside the library's package every bare FQN resolves to your approximation's non-generic class instead of the real type, breaking compilation wholesale
 - Model every method and overload the unit lists, not only the shapes you happen to have a sample for — an under-covered unit silently drops taint through the overloads you skipped

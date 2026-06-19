@@ -63,19 +63,18 @@ From inside any step, when a rule or approximation won't behave, load references
 Every block's work runs in subagents. Dispatch each with this template:
 
 ```
-Invoke the Skill tool with skill_id=<skill-name> first, then do the task.
+Invoke the Skill tool with skill_id=<skill-name> first, then follow its instructions precisely
 Inputs:
-  <name>: <resolved path or value>     # one line per input the skill lists
+  <name>: <resolved path or value>     # per input the skill lists
 Return:
-  <the skill's Output>, plus the exact command you ran to verify
-Do not run `opentaint scan`. Do not write `.opentaint/vulnerabilities.md`.
+  <the skill's output if present>
 ```
 
 Universal rules — every dispatch, every workflow:
 
 - open the prompt with the Skill-load line — the subagent has none of this context until it loads its skill
 - pass resolved paths (the `<name>`-keyed `.opentaint/...` paths from Working directory layout), never the placeholder tokens
-- read the named output artifact yourself before continuing — a claim is not an artifact
+- confirm the named output artifact exists and looks right (present, non-empty, expected counts) — a quick check is enough; trust the subagent's summary for contents, don't re-read full SARIF bodies or code-flows it already digested
 - only run-scan scans the main project model; rule/approximation/triage subagents don't — the one exception is a create-rule agent running a diagnostic `--track-external-methods` scan of its own test project (never the main model)
 - only you write `.opentaint/vulnerabilities.md` and `.opentaint/tracking/state.yaml`
 - never swap the project model mid-analysis; every run uses the same model
@@ -94,23 +93,25 @@ Orchestration practices:
 
 Two limits apply to every fan-out — a global one against rate-limiting, and a tighter one against memory:
 
-- Global cap of 7 — never dispatch more than 7 subagents at once, of any kind. Bursting more reliably trips transient rate-limiting. It binds light and heavy agents alike. Treat 7 as a starting ceiling: each time a subagent comes back rate-limited, drop the cap by 1 for the rest of the run
+- Global cap of 10 — never dispatch more than 10 subagents at once, of any kind. Bursting more reliably trips transient rate-limiting. It binds light and heavy agents alike. Treat 10 as a starting ceiling: each time a subagent comes back rate-limited, drop the cap by 1 for the rest of the run
 - RAM-heavy agents each spawn a heavy `opentaint` JVM, so they take a tighter memory bound on top of the global cap. The heavy set is exactly `build-project`, `run-scan`, `create-rule`, `create-dataflow-approximation`, and sometimes `debug-rule` (when it traces a real scan). Compute the bound at run start and never dispatch more than this many heavy subagents at once:
   - cores — `nproc` (Linux) / `sysctl -n hw.ncpu` (macOS)
   - free memory in GB — `free -g` (Linux, the `available` column) / `sysctl -n hw.memsize` ÷ 1024³ (macOS)
-  - `cap_heavy = max(1, min(cores, floor(free_GB / 2), 7))` — budget ~2 GB per concurrent JVM
-- Every other agent is not RAM-bound — discover-attack-surface, create-test-project (compiles once), triage-dependencies, analyze-external-methods, analyze-findings, create-pass-through-approximation, assemble-lib-rules, generate-poc. They're held only by the global cap of 7
+  - `cap_heavy = max(1, min(cores, floor(free_GB / 2), 10))` — budget ~2 GB per concurrent JVM
+- Every other agent is not RAM-bound — discover-attack-surface, create-test-project (compiles once), triage-dependencies, analyze-external-methods, analyze-findings, create-pass-through-approximation, assemble-lib-rules, generate-poc. They're held only by the global cap of 10
 
 It's machine state, not run state — recompute on resume, don't track it. PoC is already sequential.
 
 ## State and resumption
 
-You are the only writer of `.opentaint/tracking/state.yaml` — it records the chosen levels, the commit the current project model was built from, and every phase's status, written after each fan-out join.
+You are the only writer of `.opentaint/tracking/state.yaml` — it records the chosen levels, the commit the current project model was built from, and every phase's status, written after each fan-out join. When the chosen levels differ from the recorded ones, rewrite the `phases:` map from scratch for the new levels — don't carry the prior type's entries over; a phase the new levels don't include must be absent, not left `done`.
+
+Append one entry to `tracking/history.yaml` when a fresh run starts (model commit + levels), not on resume — a short audit log of what ran.
 
 On start, and after any compaction or re-invocation, reconstruct position from the artifacts on disk before doing anything. Read `state.yaml` and the `tracking/` tree, then tell two situations apart by the phase statuses:
 
 - Resuming an interrupted run — a phase is `in_progress` or left pending mid-pipeline. Skip the phases already `done` and continue from the stop point, reusing their artifacts as-is: `project.yaml` → build; `coverage.yaml` with every entry `done` → discover; a lib unit's `tests_passing: done` → that package's lib rules, and a `rules/join/<class>.yaml` per vuln class → joins assembled; `report.sarif` → scan; an approximation unit's `artifact` (plus `tests_passing` for dataflow) → that unit; a finding with `verdict` set → triaged; with `poc` set → PoC'd
-- Re-invoking a completed run — every phase the chosen levels cover was already `done` (a re-run over evolved code, or a new level pair over a prior run's output, e.g. lite after deep). Do NOT skip the pipeline because last run's artifacts exist — re-enter build, scan and triage in reuse mode: build reuses the model only when its `model_commit` matches the current commit — a null/missing `model_commit`, or a dirty/untracked tree, forces a rebuild (which records the current commit); fall back to file mtimes when there's no usable commit (build-project); scan re-runs applying every existing rule and approximation (references/scan.md); triage re-runs and reconciles verdicts (references/triage.md). Set each covered phase back to `pending` as you re-enter it, and apply Reuse over regeneration (below) to every code-coupled artifact
+- Re-invoking a completed run — every phase the chosen levels cover was already `done` (a re-run over evolved code, or a new level pair over a prior run's output, e.g. lite after deep). Do NOT skip the pipeline because last run's artifacts exist — re-enter build, scan and triage in reuse mode: build reuses or rebuilds the model (references/build.md); scan re-runs applying every existing rule and approximation (references/scan.md); triage re-runs and reconciles verdicts (references/triage.md). Set each covered phase back to `pending` as you re-enter it, and apply Reuse over regeneration (below) to every code-coupled artifact
 - detect new work from artifacts, not memory: finding files with `verdict: pending` (a fresh or reset scan) → triage; methods in `dropped-external-methods.yaml` not yet in any approximation unit → approximations
 
 ### Reuse over regeneration
@@ -138,6 +139,15 @@ The single source of truth for the tracking schema; each skill writes only its o
   approximations/<package-kebab>-dataflow.yaml      # lambda/callback/async; tested on a test project
   approximations/skipped.yaml             # methods the engine asks for but that carry no taint
   poc-servers.yaml                        # generate-poc — instances it started; you reap them at end of PoC phase
+  history.yaml                            # you only — one entry per run (commit + levels)
+```
+
+history.yaml — append-only audit log, newest last:
+
+```yaml
+runs:
+  - commit: a1b2c3d4      # model_commit at run time (null if dirty/no repo)
+    type: deep/dynamic    # scan_level/triage_level
 ```
 
 state.yaml:
@@ -145,7 +155,9 @@ state.yaml:
 ```yaml
 scan_level: deep        # lite | normal | deep
 triage_level: dynamic   # static | dynamic
-model_commit: a1b2c3d4  # commit the current project model was built from — null if untracked or the tree was dirty (a null forces a rebuild)
+model_commit: a1b2c3d4  # HEAD the model was built from, null if dirty source code/no repo — orchestrator-only (references/build.md)
+build_jdk: null         # JDK the project build needs, once found
+max_memory: null        # 16G once an OOM forces it (references/scan.md)
 phases:                 # pending | in_progress | done
   build: done
   discover: done        # deep only
