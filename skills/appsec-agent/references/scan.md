@@ -6,7 +6,7 @@ Only normal/deep runs need more, because only they iterate approximations: there
 
 Pass `<max-memory>` when `state.yaml`'s `max_memory` is set. If a subagent reports it only succeeded after retrying at `--max-memory 16G`, record `max_memory: 16G` and pass it to every later run-scan subagent so they start there.
 
-If the 16G retry also failed (out of memory, no valid SARIF), continue on what was produced but dispatch report-analyzer-issue with the setup (ruleset, approximation dirs, model, the 16G reached) and commit hash. A coverage gap, not a run-stopper.
+A scan that produced a SARIF — even with a timeout or OOM message — is done; take it as-is. Only when no valid SARIF comes out even at 16G: stop the workflow (nothing to triage) and document it — dispatch report-analyzer-issue with the setup (ruleset, approximation dirs, model, the 16G reached) and commit hash.
 
 Set `phases.scan: done`.
 
