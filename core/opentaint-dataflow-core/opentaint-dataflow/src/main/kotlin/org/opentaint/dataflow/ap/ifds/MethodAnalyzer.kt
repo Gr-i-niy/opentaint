@@ -149,6 +149,8 @@ interface MethodAnalyzer {
 
     fun allIntraProceduralFacts(): Map<CommonInst, Set<FinalFactAp>>
 
+    fun cleanup()
+
     sealed interface MethodCallHandler {
         data class ZeroToZeroHandler(val currentEdge: ZeroToZero) : MethodCallHandler
         data class ZeroToFactHandler(val currentEdge: ZeroToFact, val startFactBase: AccessPathBase) : MethodCallHandler
@@ -178,7 +180,7 @@ class NormalMethodAnalyzer(
     private val cancellation: Cancellation = runner.manager.cancellation
 
     private var zeroInitialFactProcessed: Boolean = false
-    private val initialFacts = apManager.initialFactAbstraction(methodEntryPoint.statement)
+    private var initialFacts = apManager.initialFactAbstraction(methodEntryPoint.statement)
     private val edges = MethodAnalyzerEdges(apManager, methodEntryPoint, analysisManager)
     private var pendingSummaryEdges = EdgeCollection.EdgeList(apManager, methodEntryPoint)
     private var pendingSideEffectRequirements = arrayListOf<InitialFactAp>()
@@ -201,7 +203,7 @@ class NormalMethodAnalyzer(
     override var analyzerSteps: Long = 0
         private set
 
-    private val stepsForTaintMark: MutableMap<String, Long> = hashMapOf()
+    private val stepsForTaintMark: MutableMap<String, Long>? = taintRulesStatsSamplingPeriod?.let { hashMapOf() }
 
     private var summaryEdgesHandled: Long = 0
     private var traceResolverSteps: Long = 0
@@ -241,7 +243,7 @@ class NormalMethodAnalyzer(
             traceResolverSteps += this@NormalMethodAnalyzer.traceResolverSteps
             unprocessedEdges += this@NormalMethodAnalyzer.unprocessedEdges.size
             coveredInstructions.or(edges.reachedStatements())
-            this@NormalMethodAnalyzer.stepsForTaintMark.forEach { (mark, count) ->
+            this@NormalMethodAnalyzer.stepsForTaintMark?.forEach { (mark, count) ->
                 stepsForTaintMark.compute(mark) { _, prev ->
                     prev?.let { it + count } ?: count
                 }
@@ -679,6 +681,8 @@ class NormalMethodAnalyzer(
     private fun tryEmmitSummaryEdge(edge: Edge) {
         if (!methodInstGraph.isExitPoint(analysisManager, edge.statement)) return
 
+        if (!isApplicableExitToReturnEdge(edge)) return
+
         val isValidSummaryEdge = when (edge) {
             is ZeroToZero -> true
             is ZeroToFact -> analysisManager.isValidMethodExitFact(apManager, analysisContext, edge.factAp)
@@ -813,7 +817,7 @@ class NormalMethodAnalyzer(
         }
     }
 
-    private val methodEntryPointsCache = hashMapOf<MethodWithContext, Array<CommonInst>>()
+    private var methodEntryPointsCache = hashMapOf<MethodWithContext, Array<CommonInst>>()
 
     private fun methodEntryPoints(method: MethodWithContext): List<MethodEntryPoint> {
         val methodEntryPoints = methodEntryPointsCache.getOrPut(method) {
@@ -1378,7 +1382,7 @@ class NormalMethodAnalyzer(
 
         val taintMarks = finalEdgeFact.collectTaintMarks()
         taintMarks.forEach { taintMark ->
-            stepsForTaintMark.compute(taintMark) { _, prev ->
+            stepsForTaintMark?.compute(taintMark) { _, prev ->
                 prev?.let { it + 1 } ?: 1
             }
         }
@@ -1386,6 +1390,21 @@ class NormalMethodAnalyzer(
 
     private fun FactToFact.summaryEdge() = SummaryEdge.F2F(initialFactAp, factAp)
     private fun NDFactToFact.summaryEdge() = SummaryEdge.NdF2F(initialFacts, factAp)
+
+    override fun cleanup() {
+        methodEntryPointsCache = hashMapOf()
+
+        unprocessedEdges = EdgeCollection.EdgeList(apManager, methodEntryPoint)
+        enqueuedUnchangedEdges = EdgeCollection.EdgeSet()
+
+        pendingSummaryEdges = EdgeCollection.EdgeList(apManager, methodEntryPoint)
+        pendingSideEffectRequirements = arrayListOf()
+        pendingSideEffectSummaries = arrayListOf()
+        delayedF2FSummaries = EdgeCollection.EdgeList(apManager, methodEntryPoint)
+
+        initialFacts = apManager.initialFactAbstraction(methodEntryPoint.statement)
+        delayedF2FInitialEdges = EdgeCollection.EdgeList(apManager, methodEntryPoint)
+    }
 
     companion object {
         const val INITIAL_ALLOWED_FACT_DEPTH = 3
@@ -1398,7 +1417,7 @@ class EmptyMethodAnalyzer(
     override val methodEntryPoint: MethodEntryPoint
 ) : MethodAnalyzer {
     private var zeroInitialFactProcessed: Boolean = false
-    private val taintedInitialFacts = hashSetOf<AccessPathBase>()
+    private var taintedInitialFacts = hashSetOf<AccessPathBase>()
     private val apManager: ApManager get() = runner.apManager
 
     override fun addInitialZeroFact() {
@@ -1429,6 +1448,10 @@ class EmptyMethodAnalyzer(
             methodEntryPoint,
             listOf(FactToFact(methodEntryPoint, initialFactAp, methodEntryPoint.statement, factAp))
         )
+    }
+
+    override fun cleanup() {
+        taintedInitialFacts = hashSetOf()
     }
 
     override val analyzerSteps: Long = 0
@@ -1900,6 +1923,10 @@ class TimedMethodAnalyzer(
         addToTotalTime = false,
     ) {
         base.allIntraProceduralFacts()
+    }
+
+    override fun cleanup() {
+        base.cleanup()
     }
 }
 
