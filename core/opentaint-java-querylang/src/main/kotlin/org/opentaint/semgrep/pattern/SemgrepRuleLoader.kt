@@ -89,6 +89,16 @@ class SemgrepRuleLoader(
         semgrepFileTrace.info("Register ${supportedRules.size} rules")
     }
 
+    private fun buildTagIndex(): Map<String, List<String>> {
+        val tagIndex = hashMapOf<String, MutableList<String>>()
+        for (registered in registeredRules.values) {
+            for (tag in registered.rule.tags) {
+                tagIndex.getOrPut(tag, ::mutableListOf).add(registered.ruleId)
+            }
+        }
+        return tagIndex
+    }
+
     private fun registerRule(rule: RegisteredRule) {
         if (rule.ruleId in registeredRules) {
             rule.ruleTrace.stepTrace(Step.LOAD_RULESET)
@@ -126,11 +136,12 @@ class SemgrepRuleLoader(
                 loaded += loadNormalRule(it) ?: return@forEach
             }
 
+        val tagIndex = buildTagIndex()
         parsedRules.values
             .filterIsInstance<JoinRule<*>>()
             .filterNot { it.skip() }
             .forEach {
-                loaded += loadJoinRule(it) ?: return@forEach
+                loaded += loadJoinRule(it, tagIndex) ?: return@forEach
             }
 
         return RuleLoadResult(loaded, disabledRules)
@@ -322,10 +333,13 @@ class SemgrepRuleLoader(
         rule: SemgrepRule<RuleWithMetaVars<TaintRegisterStateAutomata, ResolvedMetaVarInfo>>,
     ): TaintRuleFromSemgrep<R> = ctx.convertTaintAutomataToTaintRules(strategy.taintRuleStrategy, rule)
 
-    private fun loadJoinRule(rule: JoinRule<*>): Pair<TaintRuleFromSemgrep<*>, RuleMetadata>? {
+    private fun loadJoinRule(
+        rule: JoinRule<*>,
+        tagIndex: Map<String, List<String>>
+    ): Pair<TaintRuleFromSemgrep<*>, RuleMetadata>? {
         val trace = rule.info.ruleTrace
 
-        val taintAutomata = buildJoinRule(rule, trace.stepTrace(Step.BUILD))
+        val taintAutomata = buildJoinRule(rule, tagIndex, trace.stepTrace(Step.BUILD))
             ?: return null
 
         val a2trTrace = trace.stepTrace(Step.AUTOMATA_TO_TAINT_RULE)
@@ -379,15 +393,24 @@ class SemgrepRuleLoader(
         return builtRule
     }
 
-    private fun buildJoinRule(rule: JoinRule<*>, trace: SemgrepRuleLoadStepTrace): TaintAutomataJoinRule? {
+    private fun buildJoinRule(
+        rule: JoinRule<*>,
+        tagIndex: Map<String, List<String>>,
+        trace: SemgrepRuleLoadStepTrace
+    ): TaintAutomataJoinRule? {
         val items = hashMapOf<String, TaintAutomataJoinRuleItem>()
+        val aliasItemIds = hashMapOf<String, List<String>>()
         val itemRenames = hashMapOf<String, List<Pair<MetavarAtom, MetavarAtom>>>()
 
         val strategy = strategyFor(rule.info) ?: return null
 
         for (ref in rule.refs) {
-            val refId = resolveRefRuleId(ref.rule, rule.info.pathInfo.ruleRelativePath)
-            val itemAutomata = resolveBuiltRuleWrtOverrides(refId, trace, hashSetOf())
+            if (ref.`as` in aliasItemIds) {
+                trace.error(JoinRefDuplicateAlias(ref.`as`))
+                return null
+            }
+
+            val refIds = resolveRefTargets(ref, rule.info, tagIndex, trace)
                 ?: return null
 
             val renames = ref.renames.map {
@@ -396,12 +419,24 @@ class SemgrepRuleLoader(
                 Pair(from, to)
             }
 
-            items[ref.`as`] = TaintAutomataJoinRuleItem(itemAutomata.info.ruleId, itemAutomata.rule)
+            // A single-rule ref keeps its alias as the item id so plain joins convert exactly as
+            // before; only tag-expanded refs (several rules) get index-suffixed item ids.
+            aliasItemIds[ref.`as`] = refIds.mapIndexed { index, refId ->
+                if (parsedRules[refId] is JoinRule<*>) {
+                    trace.error(JoinRefToUnsupportedRuleKind(refId))
+                    return null
+                }
+                val itemAutomata = resolveBuiltRuleWrtOverrides(refId, trace, hashSetOf())
+                    ?: return null
+                val itemId = if (refIds.size == 1) ref.`as` else "${ref.`as`}#$index"
+                items[itemId] = TaintAutomataJoinRuleItem(itemAutomata.info.ruleId, itemAutomata.rule)
+                itemId
+            }
             itemRenames[ref.`as`] = renames
         }
 
-        val operations = rule.on.map { op ->
-            if (op.left.ruleName !in items || op.right.ruleName !in items) {
+        val operations = rule.on.flatMap { op ->
+            if (op.left.ruleName !in aliasItemIds || op.right.ruleName !in aliasItemIds) {
                 trace.error(IncorrectJoinOnCondition())
                 return null
             }
@@ -409,7 +444,12 @@ class SemgrepRuleLoader(
             val lhs = strategy.parseJoinMetaVarWithRenames(op.left, itemRenames, trace) ?: return null
             val rhs = strategy.parseJoinMetaVarWithRenames(op.right, itemRenames, trace) ?: return null
 
-            TaintAutomataJoinOperation(op.op, lhs, rhs)
+            // A tag-expanded alias joins each of its rules: one operation per (left, right) item pair.
+            aliasItemIds.getValue(op.left.ruleName).flatMap { lhsItemId ->
+                aliasItemIds.getValue(op.right.ruleName).map { rhsItemId ->
+                    TaintAutomataJoinOperation(op.op, lhs.copy(itemId = lhsItemId), rhs.copy(itemId = rhsItemId))
+                }
+            }
         }
 
         if (operations.isEmpty()) {
@@ -418,6 +458,36 @@ class SemgrepRuleLoader(
         }
 
         return TaintAutomataJoinRule(items, operations)
+    }
+
+    private fun resolveRefTargets(
+        ref: SemgrepYamlJoinRuleRef,
+        joinInfo: RuleInfo,
+        tagIndex: Map<String, List<String>>,
+        trace: SemgrepRuleLoadStepTrace
+    ): List<String>? {
+        val hasRule = ref.rule != null
+        val hasTag = ref.tag != null
+        if (hasRule == hasTag) {
+            trace.error(if (hasRule) JoinRefAmbiguousTarget() else JoinRefMissingTarget())
+            return null
+        }
+
+        if (hasRule) {
+            return listOf(resolveRefRuleId(ref.rule!!, joinInfo.pathInfo.ruleRelativePath))
+        }
+
+        // A tag names an open union: disabled rules and rules of other languages narrow it
+        // silently instead of failing the join.
+        val matched = tagIndex[ref.tag].orEmpty().filter { taggedId ->
+            val taggedInfo = parsedRules[taggedId]?.info
+            taggedInfo != null && !taggedInfo.isDisabled && taggedInfo.language == joinInfo.language
+        }
+        if (matched.isEmpty()) {
+            trace.error(EmptyTagExpansion(ref.tag!!, joinInfo.language))
+            return null
+        }
+        return matched.distinct().sorted()
     }
 
     private fun LanguageStrategy<*, *>.parseJoinMetaVarWithRenames(
