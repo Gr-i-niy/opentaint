@@ -13,7 +13,7 @@ opentaint scan --project-model .opentaint/project \
 - `--passthrough-approximations .opentaint/pass-through` — add when that directory exists: passThrough configs override built-ins at the rule level, a provided rule overriding a built-in only when it matches one
 - `--dataflow-approximations .opentaint/dataflow` — add when that directory exists: code-based approximations (sources auto-compiled; pre-compiled `.class` dirs passed through as-is)
 
-Leave `--timeout` at the engine default (900s) — don't shorten it, and don't kill the scan when it runs past: the CLI ends the analysis itself and writes whatever SARIF it has, so let it exit gracefully even if that runs a little over.
+The scan is long — run it in the background and wait for it to finish. Leave `--timeout` at the engine default (900s); the CLI ends the analysis itself and writes whatever SARIF it has.
 
 ### 2. Retry once on out-of-memory
 

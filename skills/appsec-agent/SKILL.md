@@ -4,7 +4,7 @@ description: Run an end-to-end application-security analysis on a project with O
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3"
+  version: "0.3.3.1"
 ---
 
 # AppSec Agent

@@ -13,6 +13,7 @@ Each file opens with a `language: java` header line above `passThrough:` — wit
 Positions (the base of any `from`/`to`)
 - `this`, `result`, `arg(0)`, `arg(1)`, …
 - `any(<classifier>)` — expands to every argument matching the classifier (a cartesian product across positions, bound consistently), not a single argument. Rare — prefer an explicit `arg(N)`
+- `class(<fully.qualified.ClassName>)` — a class-level base standing for a class's own static / global state, used in place of `this`/`arg`/`result` so a slot hung off it routes taint into or out of static storage (a value stashed by one call and read back by another through a static map, a `ThreadLocal`, or a singleton). Use ONLY when the code unmistakably moves the value through such global state — never as a stand-in for a normal receiver or argument slot
 
 Access-path modifiers (list form `[<base>, <modifier>]`)
 - A list is ALWAYS `[<base>, <modifier>, …]` — element 0 is the base position, every later element is an access-path modifier. It is NEVER a list of destinations. Putting a second base (`result`, `this`, `arg(N)`) after the base crashes config-load with `Unexpected position modifier: <token>`. To send one source to several destinations, write one `copy` edge per destination (e.g. `from: arg(0)` → `to: arg(1)` and a second edge `from: arg(0)` → `to: result`), never `to: [arg(1), result]`.

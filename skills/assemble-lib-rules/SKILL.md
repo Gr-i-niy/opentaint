@@ -4,7 +4,7 @@ description: Write the per-vuln-class security join rules that merge the created
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3"
+  version: "0.3.3.1"
 ---
 
 # Skill: Assemble Lib Rules
@@ -44,7 +44,7 @@ For each vuln class, and within it each sink rule that needs new wiring, write a
 Two rules here:
 
 - Unique id — use `id: <class>-<sink>-lib-ext`, never the bare class name; a custom join named `ssrf`/`xxe`/`path-traversal` collides silently with the built-in join of that id and is dropped with no error (only the scan's rule statistics reveal it)
-- Same metavariable both sides — every `on` clause connects the metavariable both lib rules bind (`$UNTRUSTED` by convention) as `source.$UNTRUSTED -> sink.$UNTRUSTED`; don't invent a new name on either end
+- Right metavariable each side — the source side is always `$UNTRUSTED`. The sink side is `$UNTRUSTED` for a custom rules, but a built-in sink may bind another name — read it from how that sink is wired in the built-in security rules and use it: `source.$UNTRUSTED -> sink.$<its-metavar>`
 
 ```yaml
 rules:

@@ -1,6 +1,6 @@
 ### 1. Settle built-in coverage first
 
-Before anything, for each package the plan touches see what the built-in source rules already match for its members — browse the built-in rules dir at `opentaint health --rules`, plus the project's own (per language reference). This decides whether you write a source unit:
+Before anything, for each package the plan touches see what the built-in source rules already match for its members — `opentaint health --rules` prints the built-in rules root path; browse it and the project's own rules (per the language reference). This decides whether you write a source unit:
 
 - full — existing rules already match the project-used sources → write no unit, stop, don't drill further
 - partial — some project-used sources matched, others missed → plan only the missing used members

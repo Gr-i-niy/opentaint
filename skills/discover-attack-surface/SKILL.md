@@ -4,7 +4,7 @@ description: Classify project-used dependency members and record the taint sourc
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3"
+  version: "0.3.3.1"
 ---
 
 # Skill: Discover Attack Surface
@@ -23,7 +23,7 @@ Provided by the caller, fall back to the default value when omitted. Ask back on
 
 ### 1. Settle built-in coverage first
 
-Before anything, for each package the plan touches see what the built-in source rules already match for its members — browse the built-in rules dir at `opentaint health --rules`, plus the project's own (per language reference). This decides whether you write a source unit:
+Before anything, for each package the plan touches see what the built-in source rules already match for its members — `opentaint health --rules` prints the built-in rules root path; browse it and the project's own rules (per the language reference). This decides whether you write a source unit:
 
 - full — existing rules already match the project-used sources → write no unit, stop, don't drill further
 - partial — some project-used sources matched, others missed → plan only the missing used members
@@ -90,6 +90,6 @@ source:
 ## Constraints
 
 - This stage finds only sources — the methods where untrusted data enters; sinks are found later from the taint frontier.
-- Work only your own plan and the source units its packages map to — never another agent's plan or unit, and never `coverage.yaml` (the orchestrator's). Plans partition packages disjointly, so each source unit has a single writer.
+- Work only your own plan and the source units its packages map to — never another agent's plan or unit, and never `coverage.yaml`. Plans partition packages disjointly, so each source unit has a single writer.
 - Stored / second-order injection (data persisted then read back) is modeled by the engine itself — don't record a source for the read-back or a propagator for the store→read path.
 - For a generic project the analyzer treats every public/protected method of a public class as an entry point.

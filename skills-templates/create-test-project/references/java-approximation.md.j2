@@ -6,7 +6,7 @@ Language reference for a `dataflow` type, keyed to the body's steps.
 
 ### 1. Scaffold the project
 
-`opentaint test approximation init <project>` scaffolds the Gradle build plus the test-util jar, `Taint.java`, and the fixed `approximation-rule.yaml` the harness applies. Pass each lib at the exact pinned version from the batch's `dependencies`: this Gradle build is the approximation's own compile environment, so it must recompile from these pins even after the main project drops that dependency.
+`opentaint test approximation init <project>` scaffolds the Gradle build plus the test-util jar, `Taint.java`, and the fixed `approximation-rule.yaml` the harness applies. Pass each lib as a `--dependency` at its exact version from the app's dependency management (`.opentaint/project/sources/**/pom.xml`) verbatim — including timestamped snapshots — not a guess: this Gradle build is the approximation's own compile environment, so it must recompile from these pins even after the main project drops that dependency.
 
 ```bash
 opentaint test approximation init .opentaint/test-projects/<name> \
@@ -66,3 +66,4 @@ When the approximated method hands the data to a callback instead of returning i
 ## Constraints
 
 - The scaffold defaults to Java 8. A sample using a library that needs Java 17/21 must bump `source/targetCompatibility` and set `release` on the running JDK
+- Diagnose a compile failure with `gradle compileJava --console=plain` in the sub-project — no gradlew is generated

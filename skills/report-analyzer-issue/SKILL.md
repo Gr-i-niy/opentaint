@@ -4,7 +4,7 @@ description: Write a self-contained OpenTaint engine-issue report from a confirm
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3"
+  version: "0.3.3.1"
 ---
 
 # Skill: Report Analyzer Issue

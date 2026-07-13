@@ -4,7 +4,7 @@
 
 ### 1. Settle built-in coverage
 
-The project's own custom rules are under `.opentaint/rules/java`
+Built-in java source rules live under `java/lib/{generic,spring}/` within the `opentaint health --rules` root — grep there for a member's FQN. The project's own custom rules are under `.opentaint/rules/java`
 
 ### 2. Classify the plan's members
 

@@ -4,7 +4,7 @@ description: Analyze an OpenTaint scan's dropped external methods and decide whi
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3"
+  version: "0.3.3.1"
 ---
 
 # Skill: Analyze External Methods
@@ -30,10 +30,10 @@ Provided by the caller, fall back to the default value when omitted. Ask back on
 
 Take the members from the plan's `scopes`, judge each one, and write the verdict to the batch file `.opentaint/tracking/approximations/<batch>.yaml` — `<batch>` is your plan's filename stem, the batch id, reused for the coverage check below.
 
-Always classify from the method's real code, never from its name. Start by reading the method's source — the language reference describes how to get it. Then answer, for each method: where does its input data go? Data that arrives on the receiver or an argument — does it come back out, through the return value, an argument the method writes into, the receiver, or an object or field it stores the data in? That answer picks the bucket:
+Always classify from the method's real code, never from its name. Start by reading the method's source — `<skill-dir>/references/<language>.md` describes how to get it. Then answer, for each method: where does its input data go? Data that arrives on the receiver or an argument — does it come back out, through the return value, an argument the method writes into, the receiver, or an object or field it stores the data in? That answer picks the bucket:
 
 - `passthrough` — the method carries the data by a plain copy from one place to another: a getter, a simple arg-to-result copy, a builder, a writer that stashes the argument into the receiver or another object, a collection put-then-get, and the like
-- `dataflow` — the method carries the data through a function, lambda, or callback parameter, or an async chain. Any method that takes a function goes here
+- `dataflow` — the method carries the data through a function, lambda, or callback parameter, or an async chain. Choose it over `passthrough` when the tainted data actually travels through that functional argument. Prefer it too whenever the data does flow but not by a plain copy you can point at between positions — the propagation is opaque or too complex to name as a passThrough edge — since a dataflow model is real code and can reproduce any behaviour
 - `skipped` — the method carries the data nowhere, give a short `reason`. This is exactly where a flow ends. A few examples: a predicate or inspector that only tests, compares, or measures its input (handing back a boolean or a number); a conversion that collapses the data into a scalar that no longer holds it (a size, a parse into a number, a one-way hash — the `size()` from the preamble); a side-effect that keeps none of the data. These are illustrations of the idea, not a closed list — many methods and cases fall outside it, so decide each on what its code does
 
 The common trap is skipping an implicit carrier — a method that moves its data somewhere other than the plain return value. A `void` method that writes its argument into the receiver or another object still carries the data: it lives on in that object and the flow continues. A sanitizer or encoder is a carrier too — it returns a transformed copy of its input, so the data flows through it; model it, never skip it (whether the transform actually neutralizes the taint is settled later by the rules, not here). When in doubt, model it: over-approximating an inert method is cheap, dropping a real carrier is a false negative the run can't recover.
@@ -57,7 +57,7 @@ Record each sink in its owning package's sink unit `.opentaint/tracking/rules/si
 After classifying, run the bundled check from the project root over your plan:
 
 ```bash
-uv run scripts/check-coverage.py --batch <batch>
+uv run <skill-dir>/scripts/check-coverage.py --batch <batch>
 ```
 
 Pass your `<batch>`. It lists every batch method not yet in a classification bucket. Classify each one it prints and re-run until it reports `0 UNCOVERED`. Don't return while anything is uncovered.

@@ -1,6 +1,6 @@
 ### 1. Check existing coverage
 
-Browse the built-in library rules for a source or sink you can reference — a `refs` to a built-in is cheaper and more accurate than authoring a completely new rule. For listing available rules run
+Browse the built-in library rules for a source or sink you can reference — a `refs` to a built-in is cheaper and more accurate than authoring a completely new rule. The following command prints the built-in rules root path; browse it (layout per the language reference) and grep by your package's FQN:
 
 ```bash
 opentaint health --rules
@@ -30,7 +30,7 @@ opentaint test rule run .opentaint/test-compiled/<unit>/<side> \
 `test rule run` auto-loads the built-in rules, so pass only your custom rulesets. Apply the passthrough approximations as-is, an empty one is harmless. Read the result with the bundled script — it prints the pass/fail counts and names the failing samples, so you never parse the JSON by hand:
 
 ```bash
-uv run scripts/check-test-result.py <unit>/<side>
+uv run <skill-dir>/scripts/check-test-result.py <unit>/<side>
 ```
 
 Fix by the verdict it reports:

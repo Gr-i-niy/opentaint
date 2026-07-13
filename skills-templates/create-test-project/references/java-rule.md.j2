@@ -6,7 +6,7 @@ Language reference for a `rule-source` / `rule-sink` type, keyed to the body's s
 
 ### 1. Scaffold the project
 
-`rule-source` → `opentaint test rule init <project> --sources-only`; `rule-sink` → `--sinks-only`. Each scaffolds that one sub-project under `.opentaint/test-projects/<name>` with `Taint.java` (the generic `source()` / `sink()`) and the generic marker lib rules in its `test-rules/`. You are handed one side per invocation, build only that side. Pass each coordinate from the unit's `dependencies` as a `--dependency`:
+`rule-source` → `opentaint test rule init <project> --sources-only`; `rule-sink` → `--sinks-only`. Each scaffolds that one sub-project under `.opentaint/test-projects/<name>` with `Taint.java` (the generic `source()` / `sink()`) and the generic marker lib rules in its `test-rules/`. You are handed one side per invocation, build only that side. Pass each coordinate from the unit's `dependencies` as a `--dependency`, taking its exact version from the app's dependency management (`.opentaint/project/sources/**/pom.xml`) verbatim — including timestamped snapshots — not a guess:
 
 ```bash
 # source side
@@ -72,3 +72,4 @@ Spring-entry flows — if the flow only fires through a Spring entry point (cont
 ## Constraints
 
 - The scaffold defaults to Java 8. A sample using a library that needs Java 17/21 (Spring 7, spring-data 4, Lucene 10, Jackson 3) must bump `source/targetCompatibility` and set `release` on the running JDK — a Gradle `toolchain{}` block fails here (only JDK 21 is locatable, with no download repo)
+- Diagnose a compile failure with `gradle compileJava --console=plain` in the sub-project — no gradlew is generated

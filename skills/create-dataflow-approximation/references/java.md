@@ -10,7 +10,7 @@ An app-internal method sits in the project's own sources under `<project-root>`.
 
 ### 2. Write the approximation source
 
-Create Java files under `.opentaint/dataflow/<batch>` — one `@Approximate` class per target class. `@Approximate(TargetClass.class)` binds a model to exactly that class, so target the EXACT class the analyzer dropped — the dropped FQN reflects how the call resolved: an interface-typed receiver (`Map m = ...; m.computeIfAbsent(...)`) drops `java.util.Map#computeIfAbsent`, a concrete one (`new HashMap<>()`) drops `java.util.HashMap#computeIfAbsent`. Reach the real object with `(TargetClass) (Object) this`, put functional-interface parameters behind `@ArgumentTypeContext`, and branch with `OpentaintNdUtil.nextBool()` so the analyzer walks both paths. Never leave a body empty.
+Create Java files under `.opentaint/dataflow/<batch>` — one `@Approximate` class per target class. `@Approximate(TargetClass.class)` binds a model to exactly that class, so target the EXACT class the analyzer dropped — the dropped FQN reflects how the call resolved: an interface-typed receiver (`Map m = ...; m.computeIfAbsent(...)`) drops `java.util.Map#computeIfAbsent`, a concrete one (`new HashMap<>()`) drops `java.util.HashMap#computeIfAbsent`. An interface is a valid target — write `@Approximate` on it exactly as on a concrete class, modelling whichever FQN the analyzer dropped. Reach the real object with `(TargetClass) (Object) this`, put functional-interface parameters behind `@ArgumentTypeContext`, and branch with `OpentaintNdUtil.nextBool()` so the analyzer walks both paths. Never leave a body empty.
 
 ```java
 package com.example.approximations.batchpkg;   // per-batch package (e.g. ...approximations.cn_hutool_001) — see the globally-unique rule below
@@ -71,7 +71,7 @@ opentaint test approximation run .opentaint/test-compiled/<batch> \
 `test approximation run` applies its own bundled fixed source→sink rule automatically — you don't author or pass one. The CLI auto-compiles the `.java` sources against the analyzer JAR (for `@Approximate`, `OpentaintNdUtil`, `ArgumentTypeContext`) and the project's dependencies; if compilation fails it reports the errors and aborts before the tests. A positive sample is a `falseNegative` until the model propagates taint. Read the result with the bundled script — it prints the pass/fail counts and names each failing sample, so you don't parse the JSON by hand:
 
 ```bash
-uv run scripts/check-test-result.py <batch>
+uv run <skill-dir>/scripts/check-test-result.py <batch>
 ```
 
 Fix by the verdict it reports:

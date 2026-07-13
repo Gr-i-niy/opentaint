@@ -4,7 +4,7 @@ description: Triage OpenTaint findings statically. Use when scan findings need a
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3"
+  version: "0.3.3.1"
 ---
 
 # Skill: Analyze Findings
@@ -30,7 +30,7 @@ A finding whose `notes` open with a `reconcile` line is a rescan result under a 
 For each hash in the bundle, before any verdict, read its raw result from `.opentaint/results/report.sarif`:
 
 - find its SARIF result via `sarif_hashes` — each entry is the leading 16 chars of that result's `vulnerabilitySourceSinkHash`/`vulnerabilityWithTraceHash` fingerprint, so match it against the result's `fingerprints`/`partialFingerprints` — then read the raw `codeFlows[]`
-- walk every step, source → hops → sink, confirming it's the same tainted value end to end; confirm the flow against the application source (the built project's own sources under `.opentaint/project/sources/`) and dependency code per the language reference, not the trace text alone
+- walk every step, source → hops → sink, confirming it's the same tainted value end to end; confirm the flow against the application source (the built project's own sources under `.opentaint/project/sources/`) and dependency code, not the trace text alone
 - judge each result on its own trace — no verdict shared across results just because they share the rule
 
 ### 3. Split the bundle into logical findings

@@ -4,7 +4,7 @@ description: Model a method's taint propagation as a passThrough approximation. 
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3"
+  version: "0.3.3.1"
 ---
 
 # Skill: Create PassThrough Approximation

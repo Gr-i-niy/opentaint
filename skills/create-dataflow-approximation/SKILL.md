@@ -4,7 +4,7 @@ description: Model a method's taint propagation as code-based dataflow approxima
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3"
+  version: "0.3.3.1"
 ---
 
 # Skill: Create Dataflow Approximation
@@ -78,4 +78,5 @@ This skill appends each method whose sample passes to `build.done` as `{ method,
 ## Constraints
 
 - Verify only with the approximation test on the test project
+- The test project's sample sources are a fixed input — never edit or recompile them to force a pass; if a faithful model can't pass, leave the method out and report it (per Output)
 - Model every dataflow method and overload the batch lists, not only the ones you have a sample for
