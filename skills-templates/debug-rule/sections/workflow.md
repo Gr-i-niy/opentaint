@@ -1,6 +1,6 @@
 ### 1. Reproduce and localize the kill
 
-Reproduce the exact run that showed the problem — same `model`, rulesets, and applied approximation dirs — and trace where taint dies with a fact-reachability run:
+Reproduce the exact run that showed the problem — same `model`, rulesets, and applied approximation dirs — and trace where taint dies with a fact-reachability run. Run it directly as a foreground, blocking command and wait for exit — never background it or use Monitor:
 
 ```bash
 opentaint test rule reachability <rule> \

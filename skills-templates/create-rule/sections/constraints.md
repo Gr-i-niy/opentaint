@@ -1,3 +1,5 @@
+{% include "shared/engine/facts.md" %}
+
 - Library rules MUST have `options.lib: true` and `severity: NOTE`
 - The test joins (`mode: join`) MUST have `metadata.cwe` and `metadata.short-description`
 - Metavariable names must match across `refs` and `on` clauses, or the join won't connect. Bind the tainted value to one consistent metavariable in every lib source/sink rule

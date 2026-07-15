@@ -4,7 +4,7 @@ description: Debug a rule or approximation that behaves unexpectedly by tracing 
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3.1"
+  version: "0.3.4"
 ---
 
 # Skill: Debug Rule
@@ -23,7 +23,7 @@ Provided by the caller, fall back to the default value when omitted. Ask back on
 
 ### 1. Reproduce and localize the kill
 
-Reproduce the exact run that showed the problem — same `model`, rulesets, and applied approximation dirs — and trace where taint dies with a fact-reachability run:
+Reproduce the exact run that showed the problem — same `model`, rulesets, and applied approximation dirs — and trace where taint dies with a fact-reachability run. Run it directly as a foreground, blocking command and wait for exit — never background it or use Monitor:
 
 ```bash
 opentaint test rule reachability <rule> \

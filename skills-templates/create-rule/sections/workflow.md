@@ -18,7 +18,7 @@ A library rule emits nothing on its own — to exercise it, wire it to the gener
 
 ### 4. Test until success
 
-Run the rule tests over the compiled sub-model, loading your lib rules and the test joins + markers, and iterate until every sample passes:
+Run the rule tests directly as a foreground, blocking command and wait for exit — never background them or use Monitor. Load your lib rules and the test joins + markers, and iterate until every sample passes:
 
 ```bash
 opentaint test rule run .opentaint/test-compiled/<unit>/<side> \

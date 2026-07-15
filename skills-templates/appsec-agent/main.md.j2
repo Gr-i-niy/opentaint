@@ -1,6 +1,6 @@
 ---
 name: appsec-agent
-description: Run an end-to-end application-security analysis on a project with OpenTaint — build, scan, model missing library methods, triage, and confirm real vulnerabilities. Use when the user asks to find vulnerabilities, run SAST, or scan an app for security issues
+description: Run an end-to-end OpenTaint application-security analysis while owning the long project build and scans and delegating each other pipeline stage. Use when the user asks to find vulnerabilities, or scan an application for security issues
 license: Apache-2.0
 metadata:
   author: opentaint
@@ -21,9 +21,9 @@ metadata:
 
 {% include "sections/dispatching.md" %}
 
-## Working tree and tracking
+## State and resumption
 
-{% include "sections/working-tree.md" %}
+{% include "sections/state-resumption.md" %}
 
 ## Key constraints
 

@@ -4,7 +4,7 @@ description: Model a method's taint propagation as code-based dataflow approxima
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3.1"
+  version: "0.3.4"
 ---
 
 # Skill: Create Dataflow Approximation
@@ -24,26 +24,26 @@ Provided by the caller, fall back to the default value when omitted. Ask back on
 
 ### 1. Understand the propagation
 
-Find and read each dataflow method's real source — skip the ones already in `build.done` (built and verified, leave them and their source as-is). An app-internal method sits in the project's own sources, a library method's source comes from its dependency (the language reference has how to get it). Read it to see how data moves from the method's inputs (receiver, arguments) to its outputs (return value, arguments it writes into, state it stores), gather the full context you need to fully understand the function's behavior.
+Find and read each dataflow method's real source: take methods not yet in `build.done`, or the specific `methods` handed for repair even when already built. Leave built methods outside that explicit subset and their approximation source unchanged. An app-internal method sits in the project's own sources, a library method's source comes from its dependency (the language reference has how to get it). Read it to see how data moves from the method's inputs (receiver, arguments) to its outputs (return value, arguments it writes into, state it stores), gathering the full context needed to understand the function's behavior.
 
 ### 2. Write the approximation
 
-Reproduce that propagation as code under `.opentaint/dataflow/<batch>`, one `@Approximate` class per target class. Cover every dataflow method and overload the batch lists, add new methods to the existing source rather than rewriting it. The engine is field-sensitive — taint is tracked per field — so route data field-to-field exactly as the source does rather than tainting the whole object. The test project's negative samples (if present) verify this by storing taint in one field and reading another, so an over-broad model makes them fire. The code form, annotations, and patterns are in the language reference.
+Reproduce that propagation as code under `.opentaint/dataflow/<batch>`, one `@Approximate` class per target class. Cover every assigned dataflow method and overload; repair an explicitly handed method in the existing source, and add new methods there rather than rewriting the file. The engine is field-sensitive — taint is tracked per field — so route data field-to-field exactly as the source does rather than tainting the whole object. The test project's negative samples (if present) verify this by storing taint in one field and reading another, so an over-broad model makes them fire. The code form, annotations, and patterns are in the language reference.
 
 ### 3. Test against the test project
 
-Run the approximation test over the compiled test project, applying this batch's sources, and iterate until the samples pass. Feedback loop: a failing sample might be caused by: the model's target class or signature doesn't match what the analyzer sees, or the body doesn't route taint from the real source to the modeled output — diagnose the mismatch, fix, and re-run, don't rationalize a non-result. When the cause isn't obvious, localize where taint dies with a fact-reachability trace before guessing further per `references/debugging.md`. On a pass, append the method to `build.done` (per Tracking).
+Run the approximation test directly as a foreground, blocking command and wait for exit — never background it or use Monitor. Apply this batch's sources and iterate until the samples pass. Feedback loop: a failing sample might be caused by: the model's target class or signature doesn't match what the analyzer sees, or the body doesn't route taint from the real source to the modeled output — diagnose the mismatch, fix, and re-run, don't rationalize a non-result. When the cause isn't obvious, localize where taint dies with a fact-reachability trace before guessing further per `references/debugging.md`. On a pass, append the method only if it is not already present in `build.done` (per Tracking); a repaired method remains recorded there.
 
 ### 4. Escalate
 
-When the sample won't converge after ~3 fixes — whether the trace shows a faithful model still can't propagate (taint dying at a plain instruction the engine should carry through, an engine limitation) or the cause stays unclear — leave the method out of `build.done` and report it with the brief cause you found (per Output), for the orchestrator to escalate. Don't retry further.
+When the sample won't converge after ~3 fixes — whether the trace shows a faithful model still can't propagate (taint dying at a plain instruction the engine should carry through, an engine limitation) or the cause stays unclear — don't add a new method to `build.done` or alter an existing repaired method's tracking entry. Report it with the brief cause you found (per Output), for the orchestrator to escalate. Don't retry further.
 
 ## Output
 
 ### Artifacts
 
 - `.opentaint/dataflow/<batch>` — the code approximation source(s), one `@Approximate` class per target class, that the scan consumes; report the path and the exact test command used
-- the passing methods appended to the batch file's `build.done` (per Tracking)
+- the passing methods present in the batch file's `build.done` (new methods appended; repaired methods already recorded, per Tracking)
 
 ### Summary
 
@@ -73,9 +73,11 @@ build:
   done: []
 ```
 
-This skill appends each method whose sample passes to `build.done` as `{ method, signature }`. A method that still fails, or one the engine provably can't propagate, stays out of `build.done` and is reported (per Output), not marked here. Don't touch the classification buckets (`passthrough`/`dataflow`/`skipped`/`engine_issues`) or an entry already in `build.done`.
+This skill appends each method whose sample passes to `build.done` as `{ method, signature }` when absent. A newly assigned method that still fails, or one the engine provably can't propagate, stays out and is reported (per Output); an explicitly repaired method leaves its existing entry unchanged. Don't touch the classification buckets (`passthrough`/`dataflow`/`skipped`/`engine_issues`) or edit an entry already in `build.done`.
 
 ## Constraints
+
+OpenTaint is a whole-program, interprocedural, field-sensitive alias analysis engine. It already propagates through visible application code, calls, aliases, and individual fields; custom rules and approximations model only the assigned source, sink, or opaque-method boundary. Compile-time constants and literals carry no taint, so a source or carrier whose output is only a constant introduces nothing.
 
 - Verify only with the approximation test on the test project
 - The test project's sample sources are a fixed input — never edit or recompile them to force a pass; if a faithful model can't pass, leave the method out and report it (per Output)

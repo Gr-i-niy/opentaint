@@ -4,7 +4,7 @@ description: Author and verify an OpenTaint rule. Use whenever a rule creation i
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3.1"
+  version: "0.3.4"
 ---
 
 # Skill: Create Rule
@@ -43,7 +43,7 @@ A library rule emits nothing on its own — to exercise it, wire it to the gener
 
 ### 4. Test until success
 
-Run the rule tests over the compiled sub-model, loading your lib rules and the test joins + markers, and iterate until every sample passes:
+Run the rule tests directly as a foreground, blocking command and wait for exit — never background them or use Monitor. Load your lib rules and the test joins + markers, and iterate until every sample passes:
 
 ```bash
 opentaint test rule run .opentaint/test-compiled/<unit>/<side> \
@@ -113,6 +113,8 @@ stages:
 ```
 
 ## Constraints
+
+OpenTaint is a whole-program, interprocedural, field-sensitive alias analysis engine. It already propagates through visible application code, calls, aliases, and individual fields; custom rules and approximations model only the assigned source, sink, or opaque-method boundary. Compile-time constants and literals carry no taint, so a source or carrier whose output is only a constant introduces nothing.
 
 - Library rules MUST have `options.lib: true` and `severity: NOTE`
 - The test joins (`mode: join`) MUST have `metadata.cwe` and `metadata.short-description`

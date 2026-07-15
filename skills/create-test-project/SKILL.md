@@ -4,7 +4,7 @@ description: Create an OpenTaint test project with positive/negative samples for
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3.1"
+  version: "0.3.4"
 ---
 
 # Skill: Create Test Project
@@ -124,5 +124,7 @@ build:
 ```
 
 ## Constraints
+
+OpenTaint is a whole-program, interprocedural, field-sensitive alias analysis engine. It already propagates through visible application code, calls, aliases, and individual fields; custom rules and approximations model only the assigned source, sink, or opaque-method boundary. Compile-time constants and literals carry no taint, so a source or carrier whose output is only a constant introduces nothing.
 
 - One `<name>` folder per unit — never write into another unit's test project, so concurrent agents don't race

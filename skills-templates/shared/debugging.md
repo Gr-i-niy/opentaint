@@ -4,6 +4,8 @@ When a sample won't pass (or a scan misses a flow) and the cause isn't obvious, 
 
 ## Command
 
+Run the diagnostic directly as a foreground, blocking command and wait for exit — never background it or use Monitor.
+
 ```bash
 opentaint test rule reachability <full-id> \
   --project-model <model-dir> \

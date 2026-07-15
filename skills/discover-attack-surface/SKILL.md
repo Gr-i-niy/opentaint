@@ -4,7 +4,7 @@ description: Classify project-used dependency members and record the taint sourc
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3.1"
+  version: "0.3.4"
 ---
 
 # Skill: Discover Attack Surface
@@ -88,6 +88,8 @@ source:
 ```
 
 ## Constraints
+
+OpenTaint is a whole-program, interprocedural, field-sensitive alias analysis engine. It already propagates through visible application code, calls, aliases, and individual fields; custom rules and approximations model only the assigned source, sink, or opaque-method boundary. Compile-time constants and literals carry no taint, so a source or carrier whose output is only a constant introduces nothing.
 
 - This stage finds only sources — the methods where untrusted data enters; sinks are found later from the taint frontier.
 - Work only your own plan and the source units its packages map to — never another agent's plan or unit, and never `coverage.yaml`. Plans partition packages disjointly, so each source unit has a single writer.

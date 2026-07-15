@@ -4,6 +4,8 @@ When a sample won't pass (or a scan misses a flow) and the cause isn't obvious, 
 
 ## Command
 
+Run the diagnostic directly as a foreground, blocking command and wait for exit — never background it or use Monitor.
+
 ```bash
 opentaint test rule reachability <full-id> \
   --project-model <model-dir> \
@@ -27,7 +29,7 @@ When you suspect the entry method is never reached, add `--entry-points "<method
 
 ## Confirming a dropped library method
 
-When a positive won't pass and the suspicion is a library method on its flow dropping taint (not a rule bug), scan your own compiled sub-model with `--track-external-methods` and read the methods it lists as dropped:
+When a positive won't pass and the suspicion is a library method on its flow dropping taint (not a rule bug), scan your own compiled sub-model with `--track-external-methods` and read the methods it lists as dropped. Run this diagnostic directly as a foreground, blocking command and wait for exit — never background it or use Monitor:
 
 ```bash
 opentaint scan --project-model .opentaint/test-compiled/<unit>/<side> \

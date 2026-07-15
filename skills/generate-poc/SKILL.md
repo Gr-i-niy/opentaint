@@ -4,7 +4,7 @@ description: Reproduce a true-positive finding against the running application. 
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3.1"
+  version: "0.3.4"
 ---
 
 # Skill: Generate PoC

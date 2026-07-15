@@ -4,7 +4,7 @@ description: Analyze an OpenTaint scan's dropped external methods and decide whi
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3.1"
+  version: "0.3.4"
 ---
 
 # Skill: Analyze External Methods
@@ -125,6 +125,8 @@ stages:
 This skill fills `dependencies` and one `sinks` entry per sink it found — `{ method, signature, vuln_class, note, rule_id: null }`, `signature` the method's JVM descriptor from the plan so overloads stay distinct, `vuln_class` per entry, `note` a few words on the danger. Leave `rule_id: null` and the `stages` for the rule-authoring stage. One unit per package; the partition keeps a whole package in one batch, so you are its only writer. Where a package already has a unit from a prior round, add to it rather than rewriting.
 
 ## Constraints
+
+OpenTaint is a whole-program, interprocedural, field-sensitive alias analysis engine. It already propagates through visible application code, calls, aliases, and individual fields; custom rules and approximations model only the assigned source, sink, or opaque-method boundary. Compile-time constants and literals carry no taint, so a source or carrier whose output is only a constant introduces nothing.
 
 - Judge intrinsic propagation only, never per-project flow. Don't skip a carrier because its data doesn't seem to reach a sink here, and don't gate a sink on where its data goes — whether a flow reaches a sink is the analyzer's job, not yours
 - Classify every method the plan assigns and only those — each is a real place data was lost, don't invent methods outside the plan. `check-coverage.py --batch` must report `0 UNCOVERED` before you return

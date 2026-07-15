@@ -4,7 +4,7 @@ description: Write the per-vuln-class security join rules that merge the created
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.3.1"
+  version: "0.3.4"
 ---
 
 # Skill: Assemble Lib Rules

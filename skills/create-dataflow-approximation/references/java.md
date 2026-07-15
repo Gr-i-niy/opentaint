@@ -96,5 +96,6 @@ Fix by the verdict it reports:
 - One approximation class per target class — a strict global bijection enforced at load: each approximation FQCN maps to exactly one target and vice-versa; duplicates or a reused FQCN across batches throw `IllegalArgumentException`
 - Method signatures must match the target class methods exactly
 - Built-in dataflow approximations are first-priority and presumed correct — you cannot override them locally
+- A custom dataflow approximation overrides a passThrough for the same method — use dataflow as the fallback when a faithful passThrough cannot express or restore the propagation
 - Built-in passThrough approximations, by contrast, a user config on the same method overrides. So a coarse built-in on a *related* method — a driver that invokes the callback you modelled, a wrapper the flow passes through — can silently suppress an otherwise-correct model. When a faithful model doesn't fire, suspect a built-in on a neighbouring method and model/override that method instead; debug-rule shows which model actually applied
 - Don't unpack or grep the analyzer JAR for built-in models or signatures — its internals aren't a stable API; go through the CLI

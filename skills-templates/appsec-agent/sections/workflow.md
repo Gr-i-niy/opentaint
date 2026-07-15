@@ -1,34 +1,27 @@
-The run is one fixed pipeline, two levels decide which stages execute. `get_status.py` reports the current stage (based on tracking) and its exact tasks for your setup — which stages are in scope, and where you stand — so you never track position by hand. Walk the pipeline top to bottom: at the stage it names, load that stage's reference and do it. Don't load a stage's reference until you reach it.
+The run is one fixed pipeline; the selected levels determine which phases are in scope. Use `uv run <skill-dir>/scripts/get_status.py` to choose the next action:
 
 ```
-build → references/build.md
-discover sources → references/source-rules.md
-scan → references/scan.md
-approximation iteration → references/approximations.md
-author sinks + rules assemble → references/sink-rules.md
-triage → references/triage.md
-PoC + assemble vulnerabilities → references/poc.md
+build                       → MAIN: build
+discover / source_rules     → stage subagent: sources
+scan                        → MAIN: scan
+approximations              → stage subagent: approx-round, then MAIN: rescan; repeat
+sink_rules                  → stage subagent: sinks, then MAIN: rescan
+triage                      → stage subagent: triage
+poc                         → stage subagent: poc
 ```
 
-From inside any stage, when a rule or approximation won't behave, load references/escalation.md.
+### Build in MAIN
 
-Reuse over regeneration. The `.opentaint/` tree is long-lived — on resume or a re-invocation over changed code, reuse the `DONE` stages' artifacts and re-derive only what the current code forces. A method already built is trusted and never re-derived; existing rules and approximations apply on every scan.
+When status reports `build`, load and follow the `build-project` skill in this main session. Run its long build command through the harness's main-session background-command facility and wait for its completion event.
 
-### Scripts
+Record the returned `build_jdk` in `.opentaint/tracking/state.yaml`. Record `model_commit` as the full HEAD only when no source file is uncommitted, otherwise set it to null. Build non-convergence blocks the run because no later phase can proceed without the model.
 
-Two bundled helpers carry every deterministic step, so you neither reason it out nor read files by hand. Run both from the project root.
+### Scan in MAIN
 
-get_status.py — read-only, your source of pipeline state, run it freely:
+When status reports `scan`, or a stage returns with a rescan pending, load and follow the `run-scan` skill in this main session. Start the scan with the harness's main-session background-command facility, keep the engine's self-timeout, add a 1200-second outer backstop, and wait for the process completion event.
 
-- `uv run scripts/get_status.py` — the current stage and the exact tasks for it: the plans, batches, units, or findings to hand out, each named in full. Run it at a stage's gate or during it (to get an overview of what's left), then dispatch what it lists
-- `uv run scripts/get_status.py --full` — every in-scope phase status, plus the run's levels, language, model commit, and agent caps. Run it at run start or on resume
+A valid `.opentaint/results/report.sarif` means the scan completed, including exit 254 after an engine timeout. Record `max_memory: 16G` when the scan had to bump memory and reuse it on later scans. If no SARIF exists after the allowed retry/backstop, follow the repair path below for a malformed rule/approximation; otherwise dispatch `orchestrate-stage` with `stage: escalation` and the scan `setup` to write the scan-wide resource issue, then stop.
 
-generate.py — writes plans/batches/state, run only at a fan-out join or at bootstrap:
+When a scan or later stage reports a malformed approximation, unloadable created rule, ineffective join, or a created rule's false positive/negative, route the exact diagnosis and artifact path/id to the responsible stage agent per Dispatching, then scan again in MAIN.
 
-- `uv run scripts/generate.py partition analyze` — dropped external methods → per-batch approximation plans
-- `uv run scripts/generate.py partition discover` — coverage.yaml's project-used members → balanced discover plans
-- `uv run scripts/generate.py mark-safe` — discover plans' verdicts → the classification.yaml ledger, then prunes the consumed plans
-- `uv run scripts/generate.py merge-skipped` — every batch's skipped/engine_issues → approximations/skipped.yaml, then prunes the consumed plans
-- `uv run scripts/generate.py findings` — the scan's SARIF (`results/report.sarif`) → per-rule finding files (idempotent; a rescan adds new result hashes without clobbering a triaged verdict)
-
-Each stage's reference names the script command for that stage.
+After every build, scan, or stage return, run `uv run <skill-dir>/scripts/get_status.py` once to choose the next action. Use `--full` at run start, on resume, or when the brief output does not settle the question.
