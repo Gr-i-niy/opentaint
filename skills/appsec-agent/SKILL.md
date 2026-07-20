@@ -4,7 +4,7 @@ description: Run an end-to-end OpenTaint application-security analysis while own
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.4"
+  version: "0.3.0"
 ---
 
 # AppSec Agent
@@ -108,7 +108,7 @@ Stage context:
 
 Keep each agent id until the next scan validates its artifacts. On a stage-owned error, resume that agent with `stage: escalation`, the exact error, and the artifact path/id. If its thread is unavailable, start a re-entrant `orchestrate-stage` agent with that diagnosis.
 
-Wait on native agent completion; never use a monitor, background command, or resume-polling for stage work. The stage returns only after its leaves finish. Never overlap a stage agent with a MAIN-owned build or scan.
+Dispatch each subagent fresh, don't fork context into it. Then wait for it natively, don't monitor or poll every minute. If the harness forces a wait timeout, set it to ~1h and re-wait when it returns.
 
 ## State and resumption
 
@@ -142,6 +142,6 @@ max_memory: null
 
 ## Key constraints
 
-- read pipeline state through `<skill-dir>/scripts/get_status.py`, not by hand — don't re-derive it with glob/grep/`python3 -c`/yaml scans over `.opentaint/tracking`, `results`, or the `*.yaml`. If its output doesn't settle the question, re-run it with `--full` before opening any file; hand-scanning the tree is what balloons the run's context
+- read pipeline state through `<skill-dir>/scripts/get_status.py`, not by hand — don't re-derive it with glob/grep/`python3 -c`/yaml scans over `.opentaint/tracking`, `results`, or the `*.yaml`, nor open finding/unit/SARIF files just to review progress. If its output doesn't settle the question, re-run it with `--full` before opening any file
 - don't author or edit stage-owned artifacts or tracking; MAIN writes only `model_commit`, `build_jdk`, and `max_memory` in `state.yaml`
 - keep one generated project model for the run; never hand-edit or replace it mid-analysis — fix the build and rebuild before starting a new run

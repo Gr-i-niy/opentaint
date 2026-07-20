@@ -22,7 +22,7 @@ When the `sinks` input is set, make a second pass over the same members for a di
 
 Judge sink-ness from the method's own code and behaviour, independent of how the project uses it — don't trace whether taint can actually reach the call, that is the analyzer's job. And judge it apart from propagation: the propagation verdict never settles sink-ness, and finding a sink never changes it. Sinks might sit among the carriers you just modeled, and a `skipped` method can be a sink too — carrying nothing onward says nothing about whether the call itself is dangerous.
 
-Record each sink in its owning package's sink unit `.opentaint/tracking/rules/sinks/<package-kebab>.yaml` (per Tracking).
+Record each sink in its owning package's sink unit `.opentaint/tracking/rules/sinks/<package-kebab>.yaml` (per Tracking). Name its `vuln_class` in canonical kebab-case, reusing the class names the built-in security rules use so the joins group correctly — e.g. `sql-injection`, `path-traversal`, `ssrf`, `deserialization`, `unsafe-reflection`.
 
 ### 3. Verify coverage
 

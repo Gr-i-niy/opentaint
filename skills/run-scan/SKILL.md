@@ -4,7 +4,7 @@ description: Run an OpenTaint scan on project and produces the SARIF report. Use
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.4"
+  version: "0.3.0"
 ---
 
 # Skill: Run Scan
@@ -42,11 +42,11 @@ The scan is long — run it in the background and wait for it to finish. Leave `
 
 ### 2. Retry once on out-of-memory
 
-Start at the 8G default. Only after an out-of-memory failure, retry once with `--max-memory 16G` — never higher, more RAM won't improve results. One bump, no further. When the caller passed `max-memory`, run at it from the first attempt instead
+Start at the 8G default. An out-of-memory failure at 8G — even when the engine still wrote a partial SARIF — is not an acceptable result: retry once at `--max-memory 16G` before collecting anything. Never higher (more RAM won't improve results), one bump only. When the caller passed `max-memory`, run at it from the first attempt instead
 
 ### 3. Collect the report, or escalate
 
-If a SARIF was produced — even alongside a timeout or OOM message — take it as-is and ignore the error, the results are already there. When the scan instead fails at config-load on a malformed approximation (e.g. an unexpected position modifier, a duplicate approximation class), it is not out-of-memory: don't retry at 16G — report the engine error and the offending file under `.opentaint/pass-through`/`.opentaint/dataflow` per Output, locating it from the error message (grep the artifacts for the reported symbol when the error doesn't name the file). Only when no valid SARIF comes out even at 16G is it a plain failure: report it per Output with the setup and don't retry beyond that one 16G attempt
+A SARIF is complete enough to use even alongside the two normal scan errors — a timeout (the CLI ended the analysis and wrote what it had), or an out-of-memory at 16G (after §2's bump), take it as-is. The other two outcomes are not results to accept. A config-load failure on a malformed approximation is fixed, not bumped: report the engine error and the offending file under `.opentaint/pass-through`/`.opentaint/dataflow` per Output so it can be repaired and rescanned. No SARIF at all, even at 16G, is a plain failure: report it per Output with the scan setup.
 
 ## Output
 

@@ -4,7 +4,7 @@ description: Author and verify an OpenTaint rule. Use whenever a rule creation i
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.4"
+  version: "0.3.0"
 ---
 
 # Skill: Create Rule

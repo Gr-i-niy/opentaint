@@ -4,7 +4,7 @@ description: Classify project-used dependency members and record the taint sourc
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.4"
+  version: "0.3.0"
 ---
 
 # Skill: Discover Attack Surface
@@ -43,7 +43,7 @@ Two writes, both per Tracking: record every source under the plan's top-level `s
 
 ### 4. Verify before returning
 
-Re-check the full plan against your classification: confirm every plan member is accounted for, then re-read the ones you did NOT record as sources and make sure none of them is actually a source. A source left out here is a false negative the run can never recover. Add any you missed to the `source` list and its unit.
+Re-check the full plan against your classification: confirm every plan member is accounted for, then re-read the ones you did NOT record as sources and make sure none of them is actually a source. A source left out here is a false negative the run can never recover. Add any you missed to the `source` list and its unit. This is a re-read of what you already wrote — simple grep or re-read is fine, no need to use some scripts.
 
 ## Output
 

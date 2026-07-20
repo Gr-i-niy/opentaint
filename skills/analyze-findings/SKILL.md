@@ -4,7 +4,7 @@ description: Triage OpenTaint findings statically. Use when scan findings need a
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.4"
+  version: "0.3.0"
 ---
 
 # Skill: Analyze Findings

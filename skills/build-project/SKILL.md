@@ -4,7 +4,7 @@ description: Build a target project into an opentaint project model. Use wheneve
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.4"
+  version: "0.3.0"
 ---
 
 # Skill: Build Project

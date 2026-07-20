@@ -4,7 +4,7 @@ description: Write the per-vuln-class security join rules that merge the created
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.4"
+  version: "0.3.0"
 ---
 
 # Skill: Assemble Lib Rules
@@ -71,9 +71,11 @@ rules:
 
 The same class's built-in sink is a second file (e.g. `ssrf-java-ssrf-sink-lib-ext.yaml`), refing only the created sources → that built-in sink.
 
-### 3. Stop — the main scan verifies
+### 3. Verify every rule is wired, then stop
 
-Write the joins, set `stages.written: done` (per Tracking), and return per Output.
+With the joins written, confirm no orphan before returning — a source or sink not merged into a join. Cross-check the `rule_id`s in the source and sink units against the joins: every created source rule must appear as a source end in the `on` of at least one join, and every created sink rule must be the sink of a join, and each created sink's join must ref all its relevant sources (built-in + created) on the left. Add a join (per step 2) for anything still unwired.
+
+Set `stages.written: done` (per Tracking) and return per Output.
 
 ## Output
 

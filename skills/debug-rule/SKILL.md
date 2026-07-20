@@ -4,7 +4,7 @@ description: Debug a rule or approximation that behaves unexpectedly by tracing 
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.4"
+  version: "0.3.0"
 ---
 
 # Skill: Debug Rule

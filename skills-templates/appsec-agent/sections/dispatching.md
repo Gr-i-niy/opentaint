@@ -19,4 +19,4 @@ Stage context:
 
 Keep each agent id until the next scan validates its artifacts. On a stage-owned error, resume that agent with `stage: escalation`, the exact error, and the artifact path/id. If its thread is unavailable, start a re-entrant `orchestrate-stage` agent with that diagnosis.
 
-Wait on native agent completion; never use a monitor, background command, or resume-polling for stage work. The stage returns only after its leaves finish. Never overlap a stage agent with a MAIN-owned build or scan.
+Dispatch each subagent fresh, don't fork context into it. Then wait for it natively, don't monitor or poll every minute. If the harness forces a wait timeout, set it to ~1h and re-wait when it returns.

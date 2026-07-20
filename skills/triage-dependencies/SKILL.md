@@ -4,7 +4,7 @@ description: Mark which of a project's dependency libraries could introduce tain
 license: Apache-2.0
 metadata:
   author: opentaint
-  version: "0.3.4"
+  version: "0.3.0"
 ---
 
 # Skill: Triage Dependencies
@@ -35,7 +35,7 @@ When `coverage.yaml` already exists from a prior run, reconcile rather than over
 
 ### 4. Verify before returning
 
-Re-check the full dependency list against your flags: confirm every dependency was judged, then re-read the ones you did NOT flag and make sure none of them can actually introduce a source. A library left out here loses its sources on every later stage and the run can't recover it. Add any package you missed to the list
+Re-check the full dependency list against your flags: confirm every dependency was judged, then re-read the ones you did NOT flag and make sure none of them can actually introduce a source. A library left out here loses its sources on every later stage and the run can't recover it. Add any package you missed to the list. This is a re-read of what you already wrote — simple grep or re-read is fine, no need to use some scripts.
 
 ## Output
 
