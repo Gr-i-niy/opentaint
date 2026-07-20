@@ -19,8 +19,8 @@ OpenTaint is a whole-program, interprocedural, field-sensitive alias analysis SA
 
 Confirm `opentaint` is on PATH with `opentaint -v`. If it's missing, don't proceed silently — tell the user and offer the install command for their platform, run an install only on explicit confirmation:
 
-- macOS / Linux, in order: `brew install --cask seqra/tap/opentaint` · `npm install -g @seqra/opentaint` · `curl -fsSL https://opentaint.org/install.sh | bash`
-- Windows, in order: `npm install -g @seqra/opentaint` · `irm https://opentaint.org/install.ps1 | iex`
+- macOS / Linux, in order: `brew install --cask seqra/tap/opentaint` · `npm install -g @seqra/opentaint`
+- Windows: `npm install -g @seqra/opentaint`
 
 After installing, run `opentaint health` to confirm everything's resolved.
 
