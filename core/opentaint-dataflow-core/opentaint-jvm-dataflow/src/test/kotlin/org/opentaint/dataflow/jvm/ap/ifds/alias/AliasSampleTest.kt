@@ -29,6 +29,7 @@ import org.opentaint.dataflow.jvm.ap.ifds.analysis.JIRAnalysisManager
 import org.opentaint.dataflow.jvm.ap.ifds.taint.TaintRulesProvider
 import org.opentaint.dataflow.jvm.ifds.JIRUnitResolver
 import org.opentaint.dataflow.util.Cancellation
+import org.opentaint.dataflow.util.RefManager
 import org.opentaint.ir.api.common.CommonMethod
 import org.opentaint.ir.api.common.cfg.CommonInst
 import org.opentaint.ir.api.jvm.JIRField
@@ -108,9 +109,13 @@ class AliasSampleTest : BasicTestUtils() {
             fact: FactAp?,
             allRelevant: Boolean
         ): Iterable<TaintStaticFieldSource> = emptyList()
+
+        override fun selectRules(ruleIds: Set<String>) {
+            // do nothing
+        }
     }
     
-    private val manager by lazy { JIRAnalysisManager(cp, noRules) }
+    private val manager by lazy { JIRAnalysisManager(cp, RefManager(), noRules) }
 
     @Test
     fun `test simple aliasing`() {
