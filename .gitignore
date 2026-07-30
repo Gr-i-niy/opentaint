@@ -37,4 +37,3 @@ core/**/bin/
 # Agent plugin manifests
 !.claude-plugin
 !.codex-plugin
-!.agents

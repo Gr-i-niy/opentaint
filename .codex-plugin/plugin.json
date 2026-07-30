@@ -1,16 +1,15 @@
 {
   "name": "opentaint",
   "version": "0.3.0",
-  "description": "Taint-analysis based application-security skills: build a project model, scan it, author rules and approximations, triage findings, and reproduce true positives.",
+  "description": "Taint-analysis based application-security workflow skills",
   "author": {
-    "name": "OpenTaint"
+    "name": "Seqra"
   },
-  "homepage": "https://github.com/Gr-i-niy/opentaint",
-  "repository": "https://github.com/Gr-i-niy/opentaint",
+  "homepage": "https://opentaint.org/",
+  "repository": "https://github.com/seqra/opentaint",
   "license": "Apache-2.0",
   "keywords": [
     "security",
-    "appsec",
     "sast",
     "taint-analysis",
     "vulnerability-scanning"
@@ -18,13 +17,22 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "OpenTaint",
-    "shortDescription": "Taint-analysis based application security scanning",
-    "longDescription": "Run an end-to-end OpenTaint analysis: build a project model, scan for vulnerabilities, author rules and dataflow approximations for uncovered library methods, triage findings, and reproduce true positives against a running application.",
-    "developerName": "OpenTaint",
+    "shortDescription": "Taint-analysis based application-security workflow skills",
+    "longDescription": "Taint-analysis based application-security skills: build a project model, scan it, author rules and approximations, triage findings, and reproduce true positives",
+    "developerName": "Seqra",
     "category": "Security",
     "capabilities": [
-      "Skill"
+      "Read",
+      "Write"
     ],
-    "websiteURL": "https://github.com/Gr-i-niy/opentaint"
+    "defaultPrompt": [
+      "Use the appsec-agent skill to run a deep scan with static triage",
+      "Use the appsec-agent skill to run a normal scan with static triage",
+      "Use the appsec-agent skill to run a lite scan with dynamic confirmation"
+    ],
+    "brandColor": "#CA2121",
+    "logo": "./logos/opentaint-logo-light.svg",
+    "logoDark": "./logos/opentaint-logo-dark.svg",
+    "websiteURL": "https://opentaint.org/"
   }
 }
