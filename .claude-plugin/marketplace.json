@@ -3,22 +3,22 @@
   "name": "opentaint",
   "description": "OpenTaint application-security skills for AI coding agents",
   "owner": {
-    "name": "OpenTaint",
-    "url": "https://github.com/Gr-i-niy/opentaint"
+    "name": "Seqra",
+    "url": "https://opentaint.org/"
   },
   "plugins": [
     {
       "name": "opentaint",
       "source": "./",
-      "description": "Taint-analysis based application-security skills: build a project model, scan it, author rules and approximations, triage findings, and reproduce true positives.",
+      "description": "Taint-analysis based application-security skills: build a project model, scan it, author rules and approximations, triage findings, and reproduce true positives",
       "version": "0.3.0",
       "author": {
-        "name": "OpenTaint"
+        "name": "Seqra"
       },
       "license": "Apache-2.0",
       "category": "security",
-      "homepage": "https://github.com/Gr-i-niy/opentaint",
-      "repository": "https://github.com/Gr-i-niy/opentaint"
+      "homepage": "https://opentaint.org/",
+      "repository": "https://github.com/seqra/opentaint"
     }
   ]
 }

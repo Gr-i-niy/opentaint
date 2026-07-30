@@ -3,16 +3,15 @@
   "name": "opentaint",
   "displayName": "OpenTaint",
   "version": "0.3.0",
-  "description": "Taint-analysis based application-security skills: build a project model, scan it, author rules and approximations, triage findings, and reproduce true positives.",
+  "description": "Taint-analysis based application-security workflow skills",
   "author": {
-    "name": "OpenTaint"
+    "name": "Seqra"
   },
-  "homepage": "https://github.com/Gr-i-niy/opentaint",
-  "repository": "https://github.com/Gr-i-niy/opentaint",
+  "homepage": "https://opentaint.org/",
+  "repository": "https://github.com/seqra/opentaint",
   "license": "Apache-2.0",
   "keywords": [
     "security",
-    "appsec",
     "sast",
     "taint-analysis",
     "vulnerability-scanning"
