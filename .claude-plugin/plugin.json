@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "opentaint",
+  "displayName": "OpenTaint",
+  "version": "0.3.0",
+  "description": "Taint-analysis based application-security skills: build a project model, scan it, author rules and approximations, triage findings, and reproduce true positives.",
+  "author": {
+    "name": "OpenTaint"
+  },
+  "homepage": "https://github.com/Gr-i-niy/opentaint",
+  "repository": "https://github.com/Gr-i-niy/opentaint",
+  "license": "Apache-2.0",
+  "keywords": [
+    "security",
+    "appsec",
+    "sast",
+    "taint-analysis",
+    "vulnerability-scanning"
+  ],
+  "skills": "./skills/"
+}
