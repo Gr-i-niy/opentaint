@@ -86,7 +86,7 @@ abstract class SarifGenerator<IL>(
         var partialFingerPrints: Map<String, String>? = null
 
         if (options.generateFingerprint) {
-            val sinkFingerprint = computeSinkFingerprint(sinkLocation)
+            val sinkFingerprint = computeSinkFingerprint(ruleId, sinkLocation)
             val fullFingerprint = computeFingerprint(ruleId, sinkLocation, FingerprintKind.FULL_TRACE, threadFlows)
             val sourceSinkFingerprint = computeFingerprint(ruleId, sinkLocation, FingerprintKind.SOURCE_SINK, threadFlows)
             partialFingerPrints = mapOf(
@@ -118,8 +118,9 @@ abstract class SarifGenerator<IL>(
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    private fun computeSinkFingerprint(vulnerabilityLocation: IL): String {
+    private fun computeSinkFingerprint(ruleId: String, vulnerabilityLocation: IL): String {
         val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(ruleId.toByteArray())
         digest.addLocationFingerprint(vulnerabilityLocation)
         return Base64.encode(digest.digest())
     }
