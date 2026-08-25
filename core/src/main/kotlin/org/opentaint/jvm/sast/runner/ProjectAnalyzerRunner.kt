@@ -48,8 +48,14 @@ class ProjectAnalyzerRunner : AbstractAnalyzerRunner() {
     private val semgrepRuleId: List<String> by option(help = "Filter active rules by ID")
         .multiple()
 
+    private val semgrepRuleIdExclude: List<String> by option(help = "Exclude rules by ID (applied after any --semgrep-rule-id filter)")
+        .multiple()
+
     private val trackExternalMethods: Boolean by option(help = "Track external methods, produce external methods YAML lists")
         .flag()
+
+    private val disableDefaultGetModel: Boolean by option(help = "Disable default model for java getter")
+        .flag(default = false)
 
     private val javaDataflowApproximations: List<Path> by option(help = "Directory of compiled approximation class files")
         .directory()
@@ -95,6 +101,7 @@ class ProjectAnalyzerRunner : AbstractAnalyzerRunner() {
         semgrepRuleLoadTrace = semgrepRuleLoadTrace,
         semgrepSeverity = semgrepRuleSeverity,
         semgrepRuleId = semgrepRuleId,
+        semgrepRuleIdExclude = semgrepRuleIdExclude,
         trackExternalMethods = trackExternalMethods,
         ifdsAnalysisTimeout = ifdsAnalysisTimeout.seconds,
         ifdsApMode = ifdsApMode,
@@ -112,6 +119,7 @@ class ProjectAnalyzerRunner : AbstractAnalyzerRunner() {
     override fun javaOptions() = ProjectAnalysisOptions(
         common = commonOptions,
         projectKind = projectKind,
+        disableDefaultGetModel = disableDefaultGetModel,
         approximationOptions = DataFlowApproximationLoader.Options(
             customApproximationPaths = javaDataflowApproximations,
         ),

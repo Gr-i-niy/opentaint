@@ -32,6 +32,7 @@ import org.opentaint.ir.api.jvm.JIRMethod
 import org.opentaint.ir.api.jvm.cfg.JIRCallExpr
 import org.opentaint.ir.api.jvm.cfg.JIRImmediate
 import org.opentaint.ir.api.jvm.cfg.JIRInst
+import org.opentaint.util.merge
 import org.opentaint.util.onSome
 
 class JIRMethodCallFlowFunction(
@@ -279,11 +280,7 @@ class JIRMethodCallFlowFunction(
             )
 
             val passRules = taintCtx.passRulesForCallStatement(statement, callExpr, returnValue, passFactReader.factAp)
-            val passThroughFacts = applyPassThrough(
-                passRules,
-                conditionEvaluator,
-                passEvaluator
-            )
+            var passThroughFacts = applyPassThrough(passRules, conditionEvaluator, passEvaluator)
 
             if (startFactBase !is AccessPathBase.ClassStatic) {
                 analysisContext.taint.externalMethodTracker?.let { tracker ->
@@ -295,6 +292,13 @@ class JIRMethodCallFlowFunction(
                     val ruleApplied = startFactBase in passEvaluator.relevantPositionBase
                     tracker.trackExternalMethod(methodName, methodDesc, factPosition, ruleApplied)
                 }
+            }
+
+            analysisContext.analysisManager.params.defaultGetModel?.run {
+                /*todo: fix owasp, propagate default only if  passThroughFacts.isNone */
+                val defaultRules = defaultPropagationRules(method)
+                val defaultPass = applyPassThrough(defaultRules, conditionEvaluator, passEvaluator)
+                passThroughFacts = passThroughFacts.merge(defaultPass)
             }
 
             passThroughFacts.onSome { evaluatedPass ->

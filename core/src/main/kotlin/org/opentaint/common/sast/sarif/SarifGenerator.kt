@@ -86,9 +86,11 @@ abstract class SarifGenerator<IL>(
         var partialFingerPrints: Map<String, String>? = null
 
         if (options.generateFingerprint) {
+            val sinkFingerprint = computeSinkFingerprint(ruleId, sinkLocation)
             val fullFingerprint = computeFingerprint(ruleId, sinkLocation, FingerprintKind.FULL_TRACE, threadFlows)
             val sourceSinkFingerprint = computeFingerprint(ruleId, sinkLocation, FingerprintKind.SOURCE_SINK, threadFlows)
             partialFingerPrints = mapOf(
+                "vulnerabilitySinkHash/v1" to sinkFingerprint,
                 "vulnerabilityWithTraceHash/v1" to fullFingerprint,
                 "vulnerabilitySourceSinkHash/v1" to sourceSinkFingerprint,
             )
@@ -116,6 +118,14 @@ abstract class SarifGenerator<IL>(
     }
 
     @OptIn(ExperimentalEncodingApi::class)
+    private fun computeSinkFingerprint(ruleId: String, vulnerabilityLocation: IL): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(ruleId.toByteArray())
+        digest.addLocationFingerprint(vulnerabilityLocation)
+        return Base64.encode(digest.digest())
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
     private fun computeFingerprint(
         ruleId: String,
         vulnerabilityLocation: IL,
@@ -126,8 +136,12 @@ abstract class SarifGenerator<IL>(
         digest.update(ruleId.toByteArray())
         digest.addLocationFingerprint(vulnerabilityLocation)
 
-        traces
-            ?.map { computeTraceFingerprint(it, kind) }
+        val perTrace = traces?.map { computeTraceFingerprint(it, kind) }
+        val considered = when (kind) {
+            FingerprintKind.SOURCE_SINK -> perTrace?.distinctBy { it.toList() }
+            FingerprintKind.FULL_TRACE -> perTrace
+        }
+        considered
             ?.sortedWith(Arrays::compare)
             ?.forEach(digest::update)
 
