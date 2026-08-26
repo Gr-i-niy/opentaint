@@ -3,7 +3,7 @@
   "name": "appsec-workflow",
   "displayName": "OpenTaint AppSec Workflow",
   "version": "0.3.0",
-  "description": "Combine AI reasoning with whole-program static taint analysis to find vulnerabilities and store project-specific security knowledge",
+  "description": "Use AI reasoning to find vulnerabilities and create project-specific rules and dependency models for whole-program static taint analysis",
   "author": {
     "name": "Seqra"
   },
