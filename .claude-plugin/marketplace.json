@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "opentaint",
-  "description": "Use OpenTaint for continuous, lean, and agentic application security testing.",
+  "description": "Use OpenTaint skills for continuous, lean, and agentic application security testing with static taint analysis",
   "owner": {
     "name": "Seqra",
     "url": "https://opentaint.org/"
@@ -10,7 +10,7 @@
     {
       "name": "appsec-workflow",
       "source": "./",
-      "description": "Use an AI agent and formal program analysis to create repeatable vulnerability checks from one security review.",
+      "description": "Use an AI agent and static taint analysis to create repeatable vulnerability checks from one security review",
       "version": "0.3.0",
       "author": {
         "name": "Seqra"

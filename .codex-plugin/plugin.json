@@ -1,7 +1,7 @@
 {
   "name": "appsec-workflow",
   "version": "0.3.0",
-  "description": "Use an AI agent and formal program analysis to create repeatable vulnerability checks from one security review.",
+  "description": "Use an AI agent and static taint analysis to create repeatable vulnerability checks from one security review",
   "author": {
     "name": "Seqra"
   },
@@ -17,8 +17,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "OpenTaint AppSec Workflow",
-    "shortDescription": "Create repeatable checks from one security review",
-    "longDescription": "Use an AI agent to review the application and record its security context in versioned taint rules and dependency models. OpenTaint then applies these checks across the project and in later scans.",
+    "shortDescription": "Create repeatable vulnerability checks with static taint analysis",
+    "longDescription": "Use an AI agent to review the application and record its security context in versioned taint rules and dependency models. OpenTaint uses static taint analysis to run these checks across the project and in later scans.",
     "developerName": "Seqra",
     "category": "Security",
     "capabilities": [
