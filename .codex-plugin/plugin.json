@@ -1,5 +1,5 @@
 {
-  "name": "opentaint",
+  "name": "appsec-workflow",
   "version": "0.3.0",
   "description": "Taint-analysis based application-security workflow skills",
   "author": {
@@ -16,7 +16,7 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "OpenTaint",
+    "displayName": "OpenTaint AppSec Workflow",
     "shortDescription": "Taint-analysis based application-security workflow skills",
     "longDescription": "Taint-analysis based application-security skills: build a project model, scan it, author rules and approximations, triage findings, and reproduce true positives",
     "developerName": "Seqra",
@@ -31,8 +31,8 @@
       "Use the appsec-agent skill to run a lite scan with dynamic confirmation"
     ],
     "brandColor": "#CA2121",
-    "logo": "./logos/opentaint-logo-light.svg",
-    "logoDark": "./logos/opentaint-logo-dark.svg",
+    "logo": "./logos/opentaint-logo.svg",
+    "logoDark": "./logos/opentaint-logo.svg",
     "websiteURL": "https://opentaint.org/"
   }
 }

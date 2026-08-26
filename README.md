@@ -167,7 +167,7 @@ OpenTaint includes agent skills that turn static analysis into an end-to-end app
 
 ```bash
 codex plugin marketplace add seqra/opentaint
-codex plugin add opentaint@opentaint
+codex plugin add appsec-workflow@opentaint
 ```
 
 </details>
@@ -177,7 +177,7 @@ codex plugin add opentaint@opentaint
 
 ```bash
 claude plugin marketplace add seqra/opentaint
-claude plugin install opentaint@opentaint
+claude plugin install appsec-workflow@opentaint
 ```
 
 </details>

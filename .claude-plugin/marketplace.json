@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "opentaint",
+      "name": "appsec-workflow",
       "source": "./",
       "description": "Taint-analysis based application-security skills: build a project model, scan it, author rules and approximations, triage findings, and reproduce true positives",
       "version": "0.3.0",
