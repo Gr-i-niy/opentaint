@@ -3,7 +3,7 @@
   "name": "appsec-workflow",
   "displayName": "OpenTaint AppSec Workflow",
   "version": "0.3.0",
-  "description": "Use an AI agent and static taint analysis to create repeatable vulnerability checks from one security review",
+  "description": "Run an agent-led security review with static taint analysis and create reusable vulnerability checks",
   "author": {
     "name": "Seqra"
   },
