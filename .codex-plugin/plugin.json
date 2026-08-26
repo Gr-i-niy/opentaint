@@ -1,7 +1,7 @@
 {
   "name": "appsec-workflow",
   "version": "0.3.0",
-  "description": "Run an agent-led security review with static taint analysis and create reusable vulnerability checks",
+  "description": "Combine AI reasoning with whole-program static taint analysis to find vulnerabilities and store project-specific security knowledge",
   "author": {
     "name": "Seqra"
   },
@@ -17,8 +17,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "OpenTaint AppSec Workflow",
-    "shortDescription": "Create reusable vulnerability checks with static taint analysis",
-    "longDescription": "Use an AI agent to review the application. The agent adds project-specific taint rules and dependency models. OpenTaint runs whole-program static taint analysis. The workflow classifies the findings and can run proof-of-concept tests to confirm vulnerabilities. Reuse the rules and models in later scans.",
+    "shortDescription": "Find vulnerabilities with AI reasoning and static taint analysis",
+    "longDescription": "Use an AI agent to learn the application's trust boundaries and vulnerability patterns. Record this knowledge in taint rules and dependency models. OpenTaint uses the rules and models for whole-program static taint analysis. Keep the rules and models in the project for future scans.",
     "developerName": "Seqra",
     "category": "Security",
     "capabilities": [

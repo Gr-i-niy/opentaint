@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "opentaint",
-  "description": "OpenTaint skills for agent-led security reviews and repeatable static taint analysis",
+  "description": "OpenTaint skills combine AI reasoning with whole-program static taint analysis",
   "owner": {
     "name": "Seqra",
     "url": "https://opentaint.org/"
@@ -10,7 +10,7 @@
     {
       "name": "appsec-workflow",
       "source": "./",
-      "description": "Run an agent-led security review with static taint analysis and create reusable vulnerability checks",
+      "description": "Combine AI reasoning with whole-program static taint analysis to find vulnerabilities and store project-specific security knowledge",
       "version": "0.3.0",
       "author": {
         "name": "Seqra"
