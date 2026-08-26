@@ -31,8 +31,8 @@
       "Use the appsec-agent skill to run a lite scan with dynamic confirmation"
     ],
     "brandColor": "#CA2121",
-    "logo": "./logos/opentaint-logo.svg",
-    "logoDark": "./logos/opentaint-logo.svg",
+    "logo": "./logos/opentaint-icon-light.svg",
+    "logoDark": "./logos/opentaint-icon-dark.svg",
     "websiteURL": "https://opentaint.org/"
   }
 }
