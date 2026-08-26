@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "opentaint",
-  "description": "OpenTaint skills find application-specific vulnerabilities and write checks for whole-program static taint analysis",
+  "description": "OpenTaint skills extend built-in security rules and code models for your dependencies and frameworks, then find vulnerabilities with whole-program static taint analysis",
   "owner": {
     "name": "Seqra",
     "url": "https://opentaint.org/"
