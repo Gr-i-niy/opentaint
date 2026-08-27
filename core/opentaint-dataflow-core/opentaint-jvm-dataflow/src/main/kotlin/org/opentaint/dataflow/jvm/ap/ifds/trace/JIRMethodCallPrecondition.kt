@@ -133,7 +133,12 @@ class JIRMethodCallPrecondition(
         fact: InitialFactAp,
         startBase: AccessPathBase,
     ) {
-        val passRules = taintCtx.passRulesForCallStatement(statement, callExpr, returnValue, fact = null).toList()
+        val passRules = taintCtx.passRulesForCallStatement(statement, callExpr, returnValue, fact = null).toMutableList()
+
+        analysisContext.analysisManager.params.defaultGetModel?.run {
+            passRules += defaultPropagationRules(callExpr.method.method)
+        }
+
         if (passRules.isEmpty()) return
 
         val entryFactReader = InitialFactReader(fact.rebase(startBase), apManager)

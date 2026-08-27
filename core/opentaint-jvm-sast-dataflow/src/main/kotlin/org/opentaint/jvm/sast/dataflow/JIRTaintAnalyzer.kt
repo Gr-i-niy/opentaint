@@ -12,6 +12,7 @@ import org.opentaint.dataflow.jvm.ap.ifds.JIRSummarySerializationContext
 import org.opentaint.dataflow.jvm.ap.ifds.LambdaAnonymousClassFeature
 import org.opentaint.dataflow.jvm.ap.ifds.LambdaAnonymousClassFeature.JIRLambdaMethod
 import org.opentaint.dataflow.jvm.ap.ifds.analysis.JIRAnalysisManager
+import org.opentaint.dataflow.jvm.ap.ifds.analysis.JIRMethodGetDefault
 import org.opentaint.dataflow.jvm.ap.ifds.taint.TaintRulesProvider
 import org.opentaint.dataflow.jvm.ifds.JIRUnitResolver
 import org.opentaint.dataflow.jvm.ifds.PackageUnit
@@ -31,21 +32,38 @@ class JIRTaintAnalyzer(
     val taintConfiguration: TaintRulesProvider,
     val projectClasses: ClassLocationChecker,
     options: TaintAnalyzerOptions,
+    val jirOptions: JIRAnalysisOptions = JIRAnalysisOptions(),
     val analysisUnit: JIRUnitResolver = PackageUnitResolver(projectClasses),
     externalMethodTracker: ExternalMethodTracker? = null,
 ): TaintAnalyzer<JIRMethod, JIRInst>(options, externalMethodTracker) {
     override fun analysisGraph(): ApplicationGraph<JIRMethod, JIRInst> {
         val usages = runBlocking { cp.usagesExt() }
         val mainGraph = JApplicationGraphImpl(cp, usages)
-        val explicitExceptionsOnlyGraph = JExplicitExceptionsOnlyApplicationGraph(mainGraph)
-        return JIRSafeApplicationGraph(explicitExceptionsOnlyGraph)
+        val tryBoundaryExceptionsGraph = JTryBoundaryExceptionsApplicationGraph(mainGraph)
+        return JIRSafeApplicationGraph(tryBoundaryExceptionsGraph)
     }
 
+    data class JIRAnalysisOptions(
+        val disableDefaultGetModel: Boolean = false,
+    )
+
     private val analysisParams get() = JIRAnalysisManager.Params(
+        defaultGetModel = configureDefaultModel(),
         aliasAnalysisParams = JIRLocalAliasAnalysis.Params(
             aliasAnalysisInterProcCallDepth = options.experimentalAAInterProcCallDepth
         )
     )
+
+    private fun configureDefaultModel(): JIRMethodGetDefault? {
+        if (jirOptions.disableDefaultGetModel) return null
+
+        val config = object : JIRMethodGetDefault.Configuration {
+            override fun enableDefaultPropagationForClass(cls: JIRClassOrInterface): Boolean =
+                !projectClasses.isProjectClass(cls)
+        }
+
+        return JIRMethodGetDefault(config)
+    }
 
     private val taintConfig: TaintRulesProvider by lazy {
         StringConcatRuleProvider(taintConfiguration)

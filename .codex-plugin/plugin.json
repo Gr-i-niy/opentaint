@@ -1,7 +1,7 @@
 {
-  "name": "opentaint",
+  "name": "appsec-workflow",
   "version": "0.3.0",
-  "description": "Taint-analysis based application-security workflow skills",
+  "description": "Find application-specific vulnerabilities with whole-program static taint analysis and write rules and dependency models for future scans",
   "author": {
     "name": "Seqra"
   },
@@ -16,9 +16,9 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "OpenTaint",
-    "shortDescription": "Taint-analysis based application-security workflow skills",
-    "longDescription": "Taint-analysis based application-security skills: build a project model, scan it, author rules and approximations, triage findings, and reproduce true positives",
+    "displayName": "OpenTaint AppSec Workflow",
+    "shortDescription": "Find application-specific vulnerabilities and write checks for future scans",
+    "longDescription": "Find vulnerabilities that depend on application-specific context. An AI agent learns the application's trust boundaries and vulnerability patterns. The agent uses this context to write taint rules and dependency models. OpenTaint runs these checks across the whole program with static taint analysis. OpenTaint uses the same rules and models in future scans.",
     "developerName": "Seqra",
     "category": "Security",
     "capabilities": [
@@ -31,8 +31,8 @@
       "Use the appsec-agent skill to run a lite scan with dynamic confirmation"
     ],
     "brandColor": "#CA2121",
-    "logo": "./logos/opentaint-logo-light.svg",
-    "logoDark": "./logos/opentaint-logo-dark.svg",
+    "logo": "./logos/opentaint-icon-light.svg",
+    "logoDark": "./logos/opentaint-icon-dark.svg",
     "websiteURL": "https://opentaint.org/"
   }
 }
