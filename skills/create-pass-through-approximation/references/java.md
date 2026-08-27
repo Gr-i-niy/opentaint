@@ -30,9 +30,20 @@ Overrides
 
 Conditions (the only keys that load from YAML)
 - take a `pos: <position>`: `typeIs`, `constantMatches`, `constantEq`, `tainted`
+- typed constant comparison: `pos`, `value: {type: Str|Bool|Int, value: "..."}`, `cmp: Eq|Lt|Gt`; the top-level discriminator is `cmp`
 - take the position directly, no `pos` field: `isConstant`, `isNull` — adding `pos` fails to load
 - nest other conditions: `anyOf`, `allOf`, `not`
 - `constantGt` / `constantLt` load but crash the analysis when actually evaluated against a constant (their string-typed bound fails an engine type-check) — avoid until fixed
+
+Boolean call-site guard — apply the model unless an argument is a literal
+`false`; unknown runtime booleans stay conservative:
+```yaml
+condition:
+  not:
+    pos: arg(0)
+    value: {type: Bool, value: "false"}
+    cmp: Eq
+```
 
 Simplest form — a direct copy from one position to another:
 

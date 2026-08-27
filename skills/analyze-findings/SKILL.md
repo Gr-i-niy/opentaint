@@ -39,12 +39,18 @@ The results in the file all fired one rule, but may be several different vulnera
 
 ### 4. Classify and record
 
-Verdict each logical finding from its flow:
+A vulnerability is more than a reachable source-to-sink flow. It exists when an attacker-controlled value or action follows a feasible path across an intended trust or privilege boundary, reaches the sink's exact dangerous interpretation or protected operation, and violates a concrete security property without an effective control.
 
-- TP — the source is attacker-controlled, the sink is genuinely dangerous with that input, and nothing sanitizes it in between
-- FP — a sanitizer/validator neutralizes it, the source isn't actually attacker-controlled (config, constant, server-set), the sink is safe for this input (parameterized, escaped), or the path is infeasible. Record which one
+Check each logical finding in this order:
 
-Set `verdict` and append the reasoning to `notes`, below the analyzer report already seeded there (per Tracking).
+- actor and source provenance — the attacker can control the relevant value or action under realistic preconditions
+- reachability — the current code supports the path and its transformations preserve the relevant attacker influence
+- boundary and impact — identify the intended trust boundary, the exact dangerous sink behavior, and the concrete consequence
+- defenses — inspect the closest validation, authorization, parameterization, encoding, escaping, or sanitization control; confirm that it covers this value and sink context, runs before the dangerous interpretation, and is not undone by later decoding or reparsing
+
+Assign TP only when those elements form a supported boundary violation. Assign FP only with concrete counterevidence: no attacker control, an infeasible path, a sink that is not dangerous in this exact context, or an effective control. Do not treat a sanitizer name or analyzer recognition as proof, and do not invent an unobserved mitigation.
+
+Set `verdict` and append a `triage:` rationale to `notes` that names the decisive current evidence, below the analyzer report already seeded there (per Tracking).
 
 ## Output
 

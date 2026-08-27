@@ -25,7 +25,7 @@ Each unit entry already records the method's `signature` (its JVM descriptor) �
   - **sink** under test → `<Type> t = test.Taint.source(); pkg.theSink(t);` — declare the local as the sink argument's type; the generic `source()` infers it, no cast
   - **source** under test → `var v = pkg.theSource(); test.Taint.sink(v);` — `sink` takes `Object`, so any type fits
   One positive per new sink (in `sinks/`) and per new source (in `sources/`)
-- negative sample — the safe (sanitized or parameterized) variant of the same, which must not flag. Keep it realistic — prefer the library's real sanitizer or validation call when the source makes one visible — not stripped to constants
+- negative samples — normally include several realistic safe near-misses, each changing one relevant dimension of the positive sample: the sanitized/parameterized form, taint in the wrong argument, a safe sibling overload or method, a different receiver/argument/return type, or a trusted/excluded context. Where the rule relies on distinctions such as type, overload, or argument position, try to add a negative witness that would become a false positive if that distinction were lost; this helps expose patterns broader than intended. Prefer the library's real safe APIs, sanitizers, or validation calls — not samples reduced to constants
 
 The samples are plain methods; their verdicts live in a `rule-test.yaml` (below), not on the method.
 
