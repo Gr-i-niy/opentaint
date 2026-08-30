@@ -28,8 +28,12 @@ tests:
   - rule-id: java/security/code-injection.yaml#spring-el-injection
     positive:
       - security.codeinjection.SpringElInjectionSamples$UnsafeSpringElController#evalUnsafe
+      - security.codeinjection.SpringElInjectionSamples$UnsafeSpringElController#evalRawUnsafe
+      - security.codeinjection.SpringElInjectionSamples$UnsafeSpringElController#evalWithContextUnsafe
     negative:
+      - security.codeinjection.SpringElInjectionSamples$SafeSpringElController#evalFromUnrelatedFactory
       - security.codeinjection.SpringElInjectionSamples$SafeSpringElController#evalSafe
+      - security.codeinjection.SpringElInjectionSamples$SafeSpringElController#evalWithSimpleContext
   - rule-id: java/security/code-injection.yaml#ssti
     positive:
       - security.codeinjection.SstiServletSamples$UnsafeTemplateServlet#doPost
