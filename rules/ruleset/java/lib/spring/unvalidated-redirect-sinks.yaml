@@ -3,7 +3,7 @@ rules:
     options:
       lib: true
     tags:
-      - spring-unvalidated-redirect-sink
+      - unvalidated-redirect-sink
     severity: NOTE
     message: Potential redirect to an untrusted URL
     metadata:
@@ -13,8 +13,6 @@ rules:
     pattern-either:
       - pattern: new RedirectView($UNTRUSTED);
       - pattern: new ModelAndView("redirect:" + $UNTRUSTED);
-      - pattern: (HttpServletResponse $RES).sendRedirect($UNTRUSTED);
-      - pattern: (HttpServletResponse $RES).addHeader("Location", $UNTRUSTED);
       - patterns:
         - pattern: |
             @$ANNOTATION(...)
