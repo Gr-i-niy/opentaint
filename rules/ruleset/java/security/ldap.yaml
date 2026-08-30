@@ -61,8 +61,8 @@ rules:
         - tag: ldap-injection-sink
           as: sink
       on:
-        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$QUERY'
-        - 'spring-untrusted-data.$UNTRUSTED -> sink.$QUERY'
+        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
+        - 'spring-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
 
   - id: ldap-entry-poisoning
     severity: WARNING

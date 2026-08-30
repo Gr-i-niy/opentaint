@@ -111,8 +111,8 @@ rules:
         - tag: jackson-deserialization-sink
           as: sink
       on:
-        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$JSON'
-        - 'spring-untrusted-data.$UNTRUSTED -> sink.$JSON'
+        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
+        - 'spring-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
 
   - id: server-dangerous-object-deserialization
     severity: ERROR
@@ -173,8 +173,8 @@ rules:
         - tag: snakeyaml-deserialization-sink
           as: sink
       on:
-        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$YAML'
-        - 'spring-untrusted-data.$UNTRUSTED -> sink.$YAML'
+        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
+        - 'spring-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
 
   - id: insecure-resteasy-deserialization
     severity: WARNING

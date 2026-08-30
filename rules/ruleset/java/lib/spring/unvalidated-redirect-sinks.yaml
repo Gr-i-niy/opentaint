@@ -11,16 +11,16 @@ rules:
     languages:
       - java
     pattern-either:
-      - pattern: new RedirectView($URL);
-      - pattern: new ModelAndView("redirect:" + $URL);
-      - pattern: (HttpServletResponse $RES).sendRedirect($URL);
-      - pattern: (HttpServletResponse $RES).addHeader("Location", $URL);
+      - pattern: new RedirectView($UNTRUSTED);
+      - pattern: new ModelAndView("redirect:" + $UNTRUSTED);
+      - pattern: (HttpServletResponse $RES).sendRedirect($UNTRUSTED);
+      - pattern: (HttpServletResponse $RES).addHeader("Location", $UNTRUSTED);
       - patterns:
         - pattern: |
             @$ANNOTATION(...)
             $RETURNTYPE $METHOD(...) {
               ...
-              return "$REDIRECT" + $URL;
+              return "$REDIRECT" + $UNTRUSTED;
               ...
             }
 

@@ -16,9 +16,9 @@ rules:
     pattern-sinks:
       - patterns:
           - pattern-either:
-              - pattern: $STATIC_LOGGER.$METHOD(...,$DATA,...);
-              - pattern: (Logger $LOG).$METHOD(..., $DATA,...);
-          - focus-metavariable: $DATA
+              - pattern: $STATIC_LOGGER.$METHOD(...,$UNTRUSTED,...);
+              - pattern: (Logger $LOG).$METHOD(..., $UNTRUSTED,...);
+          - focus-metavariable: $UNTRUSTED
           - metavariable-regex:
               metavariable: $METHOD
               regex: ^(log|logp|logrb|entering|exiting|fine|finer|finest|info|debug|trace|warn|warning|config|error|severe)$
@@ -45,7 +45,7 @@ rules:
       - java
     patterns:
       - pattern: |
-          (org.jboss.seam.log.Log $LOGGER).$LEVEL($DATA,...)
+          (org.jboss.seam.log.Log $LOGGER).$LEVEL($UNTRUSTED,...)
       - metavariable-regex:
           metavariable: $LEVEL
           regex: (debug|error|fatal|info|trace|warn)

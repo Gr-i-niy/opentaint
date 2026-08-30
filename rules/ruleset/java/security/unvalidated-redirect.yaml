@@ -124,7 +124,7 @@ rules:
         - tag: servlet-unvalidated-redirect-sink
           as: sink
       on:
-        - 'untrusted-data.$UNTRUSTED -> sink.$URL'
+        - 'untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
 
   - id: unvalidated-redirect-in-spring-app
     severity: WARNING
@@ -246,4 +246,4 @@ rules:
         - tag: spring-unvalidated-redirect-sink
           as: sink
       on:
-        - 'untrusted-data.$UNTRUSTED -> sink.$URL'
+        - 'untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'

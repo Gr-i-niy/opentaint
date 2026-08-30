@@ -128,5 +128,5 @@ rules:
         - tag: mongodb-injection-sink
           as: sink
       on:
-        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$INPUT'
-        - 'spring-untrusted-data.$UNTRUSTED -> sink.$INPUT'
+        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
+        - 'spring-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'

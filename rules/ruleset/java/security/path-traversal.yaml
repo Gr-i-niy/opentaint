@@ -74,5 +74,5 @@ rules:
         - tag: path-traversal-sink
           as: sink
       on:
-        - 'untrusted-data.$UNTRUSTED -> sink.$FILE'
-        - 'spring-untrusted-data.$UNTRUSTED -> sink.$FILE'
+        - 'untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
+        - 'spring-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'

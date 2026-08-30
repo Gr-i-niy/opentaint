@@ -121,8 +121,8 @@ rules:
         - tag: ognl-injection-sink
           as: sink
       on:
-        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$INPUT'
-        - 'spring-untrusted-data.$UNTRUSTED -> sink.$INPUT'
+        - 'servlet-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
+        - 'spring-untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
 
   - id: script-engine-injection
     severity: ERROR
@@ -370,7 +370,7 @@ rules:
         - tag: el-injection-sink
           as: sink
       on:
-        - 'untrusted-data.$UNTRUSTED -> sink.$EXPR'
+        - 'untrusted-data.$UNTRUSTED -> sink.$UNTRUSTED'
 
   - id: spring-el-injection
     severity: ERROR
