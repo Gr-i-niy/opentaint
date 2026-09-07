@@ -6,19 +6,9 @@ Language reference for authoring Java source/sink library rules, keyed to the bo
 
 ### 1. Check existing coverage
 
-Built-in source/sink lib rules live under `java/lib/generic/` (framework-neutral) and `java/lib/spring/` (Spring-specific); mirror that layout for any custom rule you add.
+Built-in source/sink lib rules live under `java/lib/generic/` (framework-neutral) and `java/lib/spring/` (Spring-specific); project rules use the same layout under `.opentaint/rules/java/`. For a member unit, search by the exact class and method and confirm the matching signature and focused value. Mirror the matching generic or framework-specific layout for any custom rule you add.
 
 ### 2. Author the library rules
-
-Reference a built-in:
-
-```yaml
-refs:
-  - rule: java/lib/generic/servlet-untrusted-data-source.yaml#java-servlet-untrusted-data-source
-    as: servlet-source
-  - rule: java/lib/spring/untrusted-data-source.yaml#spring-untrusted-data-source
-    as: spring-source
-```
 
 Custom source library rule (`.opentaint/rules/java/lib/generic/my-source.yaml`):
 
@@ -27,6 +17,7 @@ rules:
   - id: my-custom-source
     options:
       lib: true
+    tags: [untrusted-data-source]
     severity: NOTE
     message: Custom untrusted data source
     languages: [java]
@@ -49,6 +40,7 @@ rules:
   - id: my-custom-sink
     options:
       lib: true
+    tags: [sqli-sink]
     severity: NOTE
     message: Custom dangerous operation
     languages: [java]
@@ -67,8 +59,8 @@ A tainted argument bound as a query parameter is already sanitized — the place
 
 The join goes in the test project's `test-rules/java/security/`, named `<unit>-sinks` / `<unit>-sources` so the samples' `rule-test.yaml` `rule-id` resolves (`<unit>` = the package-kebab):
 
-- `sinks` side → `<unit>-sinks`: ref the generic source + every new sink lib rule, wiring `src.$UNTRUSTED -> <sink>.$UNTRUSTED` for each
-- `sources` side → `<unit>-sources`: ref every new source lib rule + the generic sink, wiring `<source>.$UNTRUSTED -> sink.$VALUE` for each
+- `sinks` side → `<unit>-sinks`: ref the generic source + every sink `rule_id` selected for the unit, wiring `src.$UNTRUSTED -> <sink>.$UNTRUSTED` for each
+- `sources` side → `<unit>-sources`: ref every source `rule_id` selected for the unit + the generic sink, wiring `<source>.$UNTRUSTED -> sink.$VALUE` for each
 
 ```yaml
 rules:
@@ -90,7 +82,7 @@ rules:
         - 'src.$UNTRUSTED -> sink.$UNTRUSTED'
 ```
 
-The marker rules resolve from the sub-project's `test-rules` root, your lib rules from `.opentaint/rules` — `test rule run` is passed both. Metavariable names must match across `refs` and `on`.
+The marker rules resolve from the sub-project's `test-rules` root, a selected lib ref resolves from either the built-in ruleset or `.opentaint/rules`, both loaded by `test rule run`. Metavariable names must match across `refs` and `on`.
 
 ### 4. Test until success
 
