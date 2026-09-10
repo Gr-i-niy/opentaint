@@ -34,9 +34,11 @@ rules:
     severity: ERROR
     message: Untrusted data reaches a regular-expression denial-of-service sink
     metadata:
-      cwe: CWE-1333
+      cwe:
+        - CWE-1333
       short-description: Regular expression denial of service via untrusted input
-    languages: [<language>]
+    languages:
+      - <language>
     mode: join
     join:
       refs:

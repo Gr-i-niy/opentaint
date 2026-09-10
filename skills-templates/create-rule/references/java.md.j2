@@ -17,10 +17,12 @@ rules:
   - id: my-custom-source
     options:
       lib: true
-    tags: [untrusted-data-source]
+    tags:
+      - untrusted-data-source
     severity: NOTE
     message: Custom untrusted data source
-    languages: [java]
+    languages:
+      - java
     patterns:
       - pattern-either:
           - patterns:
@@ -40,10 +42,12 @@ rules:
   - id: my-custom-sink
     options:
       lib: true
-    tags: [sqli-sink]
+    tags:
+      - sqli-sink
     severity: NOTE
     message: Custom dangerous operation
-    languages: [java]
+    languages:
+      - java
     mode: taint
     pattern-sinks:
       - patterns:
@@ -68,9 +72,11 @@ rules:
     severity: ERROR
     message: Tainted value reaches a sink under test
     metadata:
-      cwe: CWE-000
+      cwe:
+        - CWE-000
       short-description: test join for the package's sinks
-    languages: [java]
+    languages:
+      - java
     mode: join
     join:
       refs:
